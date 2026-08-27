@@ -1,0 +1,2939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<title>Safe Insight Conference</title>
+
+<style>
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111;
+    color: #fff;
+    overflow: hidden;
+}
+
+button,
+input {
+    font-family: inherit;
+}
+
+
+/* =========================================================
+   APPLICATION
+========================================================= */
+
+#app {
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+#header {
+    height: 72px;
+    min-height: 72px;
+
+    background: #000;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 8px 16px;
+
+    border-bottom: 2px solid #333;
+}
+
+.headerLogo {
+    height: 54px;
+    width: auto;
+    object-fit: contain;
+}
+
+#conferenceTitle {
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#connectionStatus {
+    font-size: 13px;
+    color: #62ff62;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   VIDEO AREA
+========================================================= */
+
+#conferenceArea {
+    flex: 1;
+    min-height: 0;
+
+    display: flex;
+
+    position: relative;
+
+    background: #000;
+}
+
+
+/* =========================================================
+   VIDEO GRID
+========================================================= */
+
+#videoGrid {
+
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+
+    gap: 1px;
+
+    background: #333;
+
+}
+
+
+/* =========================================================
+   VIDEO TILE
+========================================================= */
+
+.videoTile {
+
+    position: relative;
+
+    background: #111;
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 0;
+    min-height: 0;
+}
+
+.videoTile video {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    background: #111;
+}
+
+.videoTile.adminTile {
+
+    background: #fff;
+}
+
+.videoTile.waiting {
+
+    background: #151515;
+
+    color: #888;
+
+    font-size: 16px;
+}
+
+.videoTile.empty {
+
+    background: #090909;
+}
+
+
+/* =========================================================
+   ADMIN LOGO
+========================================================= */
+
+.adminLogoContainer {
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: #fff;
+}
+
+.adminLogo {
+
+    width: 70%;
+    max-width: 320px;
+    height: auto;
+
+    object-fit: contain;
+}
+
+
+/* =========================================================
+   TILE LABEL
+========================================================= */
+
+.tileLabel {
+
+    position: absolute;
+
+    left: 8px;
+    bottom: 8px;
+
+    background: rgba(0,0,0,.75);
+
+    padding: 5px 9px;
+
+    border-radius: 4px;
+
+    font-size: 14px;
+
+    z-index: 5;
+}
+
+.adminLabel {
+
+    font-weight: bold;
+}
+
+
+/* =========================================================
+   TILE STATUS
+========================================================= */
+
+.tileStatus {
+
+    position: absolute;
+
+    right: 8px;
+    bottom: 8px;
+
+    display: flex;
+
+    gap: 5px;
+
+    z-index: 5;
+}
+
+.statusIcon {
+
+    width: 27px;
+    height: 27px;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0,0,0,.75);
+
+    font-size: 14px;
+}
+
+.statusIcon.off {
+    color: #ff4b4b;
+}
+
+
+/* =========================================================
+   ADMIN CONTROL OVERLAY
+========================================================= */
+
+.adminControls {
+
+    position: absolute;
+
+    left: 8px;
+    right: 8px;
+    top: 8px;
+
+    display: none;
+
+    gap: 5px;
+
+    z-index: 10;
+
+    flex-wrap: wrap;
+}
+
+.videoTile:hover .adminControls {
+    display: flex;
+}
+
+.adminControls button {
+
+    border: none;
+
+    padding: 5px 7px;
+
+    font-size: 11px;
+
+    border-radius: 4px;
+
+    cursor: pointer;
+
+    background: rgba(0,0,0,.85);
+
+    color: #fff;
+}
+
+.adminControls button:hover {
+    background: #333;
+}
+
+.adminControls button.danger {
+    background: #a00000;
+}
+
+
+/* =========================================================
+   BOTTOM TOOLBAR
+========================================================= */
+
+#toolbar {
+
+    min-height: 64px;
+
+    background: #000;
+
+    border-top: 2px solid #333;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    padding: 8px 12px;
+}
+
+.toolbarButton {
+
+    min-width: 110px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    padding: 10px 16px;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    background: #333;
+
+    color: #fff;
+}
+
+.toolbarButton:hover {
+    background: #555;
+}
+
+.toolbarButton.active {
+    background: #147a14;
+}
+
+.toolbarButton.danger {
+    background: #8b0000;
+}
+
+
+/* =========================================================
+   JOIN / KNOCK SCREEN
+========================================================= */
+
+#joinScreen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    background: rgba(0,0,0,.92);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.joinBox {
+
+    width: 100%;
+    max-width: 420px;
+
+    background: #fff;
+
+    color: #111;
+
+    border-radius: 10px;
+
+    padding: 30px;
+
+    text-align: center;
+
+    box-shadow: 0 10px 40px rgba(0,0,0,.5);
+}
+
+.joinLogo {
+
+    width: 250px;
+    max-width: 80%;
+
+    margin-bottom: 20px;
+}
+
+.joinBox h1 {
+
+    margin: 5px 0 10px;
+
+    font-size: 24px;
+}
+
+.joinBox p {
+
+    color: #555;
+
+    line-height: 1.4;
+}
+
+#nameInput {
+
+    width: 100%;
+
+    padding: 13px;
+
+    border: 1px solid #bbb;
+
+    border-radius: 5px;
+
+    font-size: 16px;
+
+    margin: 15px 0;
+}
+
+#knockButton {
+
+    width: 100%;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 5px;
+
+    background: #d71920;
+
+    color: #fff;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+#knockButton:hover {
+    background: #b51016;
+}
+
+
+/* =========================================================
+   WAITING SCREEN
+========================================================= */
+
+#waitingScreen {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 900;
+
+    background: rgba(0,0,0,.94);
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.waitingBox {
+
+    max-width: 500px;
+
+    text-align: center;
+}
+
+.waitingLogo {
+
+    width: 260px;
+
+    max-width: 80%;
+
+    margin-bottom: 25px;
+}
+
+.waitingBox h2 {
+
+    font-size: 25px;
+
+    margin-bottom: 10px;
+}
+
+.waitingBox p {
+
+    color: #ccc;
+
+    font-size: 17px;
+
+    line-height: 1.5;
+}
+
+.waitingSpinner {
+
+    margin: 25px auto;
+
+    width: 42px;
+    height: 42px;
+
+    border: 4px solid #444;
+
+    border-top-color: #fff;
+
+    border-radius: 50%;
+
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+/* =========================================================
+   ADMIN PANEL
+========================================================= */
+
+#adminPanel {
+
+    position: fixed;
+
+    top: 72px;
+    right: 0;
+    bottom: 64px;
+
+    width: 340px;
+
+    background: #181818;
+
+    border-left: 2px solid #444;
+
+    z-index: 200;
+
+    display: none;
+
+    flex-direction: column;
+}
+
+#adminPanelHeader {
+
+    padding: 15px;
+
+    border-bottom: 1px solid #444;
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+#waitingParticipants {
+
+    border-bottom: 1px solid #444;
+
+    padding: 10px;
+
+    max-height: 220px;
+
+    overflow-y: auto;
+}
+
+.waitingParticipant {
+
+    background: #252525;
+
+    padding: 10px;
+
+    border-radius: 5px;
+
+    margin-bottom: 8px;
+}
+
+.waitingParticipantName {
+
+    font-weight: bold;
+
+    margin-bottom: 8px;
+}
+
+.waitingParticipant button {
+
+    border: none;
+
+    padding: 7px 10px;
+
+    border-radius: 4px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+}
+
+.allowButton {
+
+    background: #168016;
+    color: white;
+}
+
+.denyButton {
+
+    background: #8c0000;
+    color: white;
+}
+
+#participantList {
+
+    flex: 1;
+
+    overflow-y: auto;
+
+    padding: 10px;
+}
+
+.participantControl {
+
+    background: #252525;
+
+    border-radius: 6px;
+
+    padding: 12px;
+
+    margin-bottom: 10px;
+}
+
+.participantName {
+
+    font-weight: bold;
+
+    margin-bottom: 8px;
+}
+
+.controlRow {
+
+    display: flex;
+
+    gap: 5px;
+
+    flex-wrap: wrap;
+}
+
+.controlRow button {
+
+    flex: 1;
+
+    min-width: 85px;
+
+    padding: 7px 5px;
+
+    border: none;
+
+    border-radius: 4px;
+
+    background: #444;
+
+    color: #fff;
+
+    cursor: pointer;
+
+    font-size: 11px;
+}
+
+.controlRow button:hover {
+    background: #666;
+}
+
+.controlRow button.locked {
+
+    background: #9b7200;
+
+}
+
+.controlRow button.danger {
+
+    background: #8b0000;
+
+}
+
+
+/* =========================================================
+   ADMIN MODE NOTICE
+========================================================= */
+
+#adminModeBadge {
+
+    display: none;
+
+    position: absolute;
+
+    top: 10px;
+    left: 10px;
+
+    z-index: 50;
+
+    background: #d71920;
+
+    padding: 7px 12px;
+
+    border-radius: 5px;
+
+    font-weight: bold;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+    #header {
+        height: 60px;
+        min-height: 60px;
+    }
+
+    .headerLogo {
+        height: 42px;
+    }
+
+    #conferenceTitle {
+        font-size: 18px;
+    }
+
+    #adminPanel {
+
+        top: 60px;
+        bottom: 60px;
+
+        width: 300px;
+    }
+
+    #toolbar {
+        min-height: 60px;
+    }
+
+    .toolbarButton {
+
+        min-width: 90px;
+
+        padding: 9px 10px;
+
+        font-size: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    html,
+    body {
+        overflow: hidden;
+    }
+
+    #header {
+
+        height: 50px;
+        min-height: 50px;
+
+        padding: 5px 8px;
+    }
+
+    .headerLogo {
+        height: 36px;
+    }
+
+    #conferenceTitle {
+        font-size: 14px;
+    }
+
+    #connectionStatus {
+        font-size: 10px;
+    }
+
+    /*
+       Two columns on phones.
+       The administrator remains prominent.
+    */
+
+    #videoGrid {
+
+        grid-template-columns: repeat(2, 1fr);
+
+        grid-auto-rows: minmax(130px, 1fr);
+
+        overflow-y: auto;
+
+        padding-bottom: 0;
+    }
+
+    /*
+       Administrator tile stays visually prominent.
+    */
+
+    .videoTile.adminTile {
+
+        order: -1;
+
+    }
+
+    .tileLabel {
+        font-size: 11px;
+        padding: 4px 6px;
+    }
+
+    .statusIcon {
+
+        width: 23px;
+        height: 23px;
+
+        font-size: 11px;
+    }
+
+    #toolbar {
+
+        min-height: 58px;
+
+        gap: 4px;
+
+        padding: 5px;
+    }
+
+    .toolbarButton {
+
+        min-width: 0;
+
+        flex: 1;
+
+        padding: 9px 5px;
+
+        font-size: 10px;
+    }
+
+    #adminPanel {
+
+        top: 50px;
+        bottom: 58px;
+
+        width: 100%;
+
+        border-left: none;
+
+        border-top: 2px solid #444;
+    }
+
+    .adminControls {
+
+        display: flex;
+    }
+
+    .adminControls button {
+
+        font-size: 9px;
+
+        padding: 4px 5px;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 400px) {
+
+    .joinBox {
+        padding: 20px;
+    }
+
+    .joinLogo {
+        width: 200px;
+    }
+
+    .joinBox h1 {
+        font-size: 20px;
+    }
+
+    #videoGrid {
+
+        grid-template-columns: repeat(2, 1fr);
+
+        grid-auto-rows: 125px;
+
+    }
+
+}
+
+
+/* =========================================================
+   HIDDEN
+========================================================= */
+
+.hidden {
+    display: none !important;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =======================================================
+     APPLICATION
+======================================================== -->
+
+<div id="app">
+
+
+    <!-- ===================================================
+         HEADER
+    ==================================================== -->
+
+    <header id="header">
+
+        <img
+            src="safe-insight-logo.png"
+            class="headerLogo"
+            alt="Safe Insight"
+        >
+
+        <div id="conferenceTitle">
+            Safe Insight Conference
+        </div>
+
+        <div id="connectionStatus">
+            ● Ready
+        </div>
+
+    </header>
+
+
+    <!-- ===================================================
+         CONFERENCE AREA
+    ==================================================== -->
+
+    <main id="conferenceArea">
+
+        <div id="adminModeBadge">
+            ADMINISTRATOR
+        </div>
+
+
+        <div id="videoGrid">
+
+
+            <!-- ===========================================
+                 TILE 1
+            ============================================ -->
+
+            <div
+                class="videoTile empty"
+                id="tile1"
+                data-slot="1"
+            >
+
+                <div class="tileLabel">
+                    Waiting for Participant
+                </div>
+
+            </div>
+
+
+            <!-- ===========================================
+                 TILE 2
+            ============================================ -->
+
+            <div
+                class="videoTile empty"
+                id="tile2"
+                data-slot="2"
+            >
+
+                <div class="tileLabel">
+                    Waiting for Participant
+                </div>
+
+            </div>
+
+
+            <!-- ===========================================
+                 TILE 3
+            ============================================ -->
+
+            <div
+                class="videoTile empty"
+                id="tile3"
+                data-slot="3"
+            >
+
+                <div class="tileLabel">
+                    Waiting for Participant
+                </div>
+
+            </div>
+
+
+            <!-- ===========================================
+                 TILE 4
+            ============================================ -->
+
+            <div
+                class="videoTile empty"
+                id="tile4"
+                data-slot="4"
+            >
+
+                <div class="tileLabel">
+                    Waiting for Participant
+                </div>
+
+            </div>
+
+
+            <!-- ===========================================
+                 ADMINISTRATOR CENTER
+            ============================================ -->
+
+            <div
+                class="videoTile adminTile"
+                id="adminTile"
+                data-slot="5"
+            >
+
+                <div
+                    class="adminLogoContainer"
+                    id="adminLogoContainer"
+                >
+
+                    <img
+                        src="safe-insight-logo.png"
+                        class="adminLogo"
+                        alt="Safe Insight"
+                    >
+
+                </div>
+
+
+                <video
+                    id="adminVideo"
+                    autoplay
+                    playsinline
+                    muted
+                    class="hidden"
+                ></video>
+
+
+                <div class="tileLabel adminLabel">
+                    Administrator
+                </div>
+
+
+                <div class="tileStatus">
+
+                    <div
+                        class="statusIcon"
+                        id="adminMicStatus"
+                    >
+                        🎤
+                    </div>
+
+                    <div
+                        class="statusIcon"
+                        id="adminCameraStatus"
+                    >
+                        📹
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ===========================================
+                 TILE 6
+            ============================================ -->
+
+            <div
+                class="videoTile empty"
+                id="tile6"
+                data-slot="6"
+            >
+
+                <div class="tileLabel">
+                    Waiting for Participant
+                </div>
+
+            </div>
+
+
+            <!-- ===========================================
+                 TILE 7
+            ============================================ -->
+
+            <div
+                class="videoTile empty"
+                id="tile7"
+                data-slot="7"
+            >
+
+                <div class="tileLabel">
+                    Waiting for Participant
+                </div>
+
+            </div>
+
+
+            <!-- ===========================================
+                 TILE 8
+            ============================================ -->
+
+            <div
+                class="videoTile empty"
+                id="tile8"
+                data-slot="8"
+            >
+
+                <div class="tileLabel">
+                    Waiting for Participant
+                </div>
+
+            </div>
+
+
+            <!-- ===========================================
+                 TILE 9
+            ============================================ -->
+
+            <div
+                class="videoTile empty"
+                id="tile9"
+                data-slot="9"
+            >
+
+                <div class="tileLabel">
+                    Waiting for Participant
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- ===================================================
+         BOTTOM TOOLBAR
+    ==================================================== -->
+
+    <footer id="toolbar">
+
+        <button
+            class="toolbarButton"
+            id="micButton"
+        >
+            🎤 Mic
+        </button>
+
+        <button
+            class="toolbarButton"
+            id="cameraButton"
+        >
+            📹 Camera
+        </button>
+
+        <button
+            class="toolbarButton"
+            id="adminCameraButton"
+        >
+            Administrator Video
+        </button>
+
+        <button
+            class="toolbarButton"
+            id="adminPanelButton"
+        >
+            Participants
+        </button>
+
+        <button
+            class="toolbarButton danger"
+            id="leaveButton"
+        >
+            Leave
+        </button>
+
+    </footer>
+
+
+</div>
+
+
+<!-- =======================================================
+     PARTICIPANT JOIN SCREEN
+======================================================== -->
+
+<div id="joinScreen">
+
+    <div class="joinBox">
+
+        <img
+            src="safe-insight-logo.png"
+            class="joinLogo"
+            alt="Safe Insight"
+        >
+
+        <h1>
+            Safe Insight Conference
+        </h1>
+
+        <p>
+            Please enter your name before joining the conference.
+        </p>
+
+        <input
+            type="text"
+            id="nameInput"
+            placeholder="Enter your name"
+            maxlength="40"
+            autocomplete="name"
+        >
+
+        <button id="knockButton">
+            🔔 Knock to Enter
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =======================================================
+     WAITING SCREEN
+======================================================== -->
+
+<div id="waitingScreen">
+
+    <div class="waitingBox">
+
+        <img
+            src="safe-insight-logo.png"
+            class="waitingLogo"
+            alt="Safe Insight"
+        >
+
+        <h2>
+            Waiting for Entry
+        </h2>
+
+        <p>
+            Your request has been sent to the administrator.
+        </p>
+
+        <p>
+            Please wait while the administrator allows you
+            into the conference.
+        </p>
+
+        <div class="waitingSpinner"></div>
+
+        <strong id="waitingName"></strong>
+
+    </div>
+
+</div>
+
+
+<!-- =======================================================
+     ADMIN PANEL
+======================================================== -->
+
+<aside id="adminPanel">
+
+    <div id="adminPanelHeader">
+
+        Conference Controls
+
+    </div>
+
+
+    <!-- ================================================
+         WAITING PARTICIPANTS
+    ================================================= -->
+
+    <div id="waitingParticipants">
+
+        <strong>
+            Waiting Room
+        </strong>
+
+        <div id="waitingList">
+
+            <p style="color:#777;">
+                Nobody is waiting.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================
+         ACTIVE PARTICIPANTS
+    ================================================= -->
+
+    <div id="participantList">
+
+        <strong>
+            Participants
+        </strong>
+
+        <p
+            id="noParticipants"
+            style="color:#777;"
+        >
+            No participants have entered.
+        </p>
+
+    </div>
+
+</aside>
+
+
+
+<script>
+
+/* =========================================================
+   APPLICATION STATE
+========================================================= */
+
+let isAdministrator = false;
+
+let localStream = null;
+
+let administratorCameraOn = false;
+
+let administratorMicOn = false;
+
+let participants = [];
+
+let waitingParticipants = [];
+
+let nextParticipantId = 1;
+
+
+/* =========================================================
+   DETERMINE ADMINISTRATOR MODE
+========================================================= */
+
+/*
+   For this first prototype:
+
+   Participant:
+       index.html
+
+   Administrator:
+       index.html?admin=true
+
+   Later we will replace this with secure authentication.
+*/
+
+const params = new URLSearchParams(
+    window.location.search
+);
+
+isAdministrator =
+    params.get("admin") === "true";
+
+
+/* =========================================================
+   DOM REFERENCES
+========================================================= */
+
+const joinScreen =
+    document.getElementById("joinScreen");
+
+const waitingScreen =
+    document.getElementById("waitingScreen");
+
+const waitingName =
+    document.getElementById("waitingName");
+
+const nameInput =
+    document.getElementById("nameInput");
+
+const knockButton =
+    document.getElementById("knockButton");
+
+const adminPanel =
+    document.getElementById("adminPanel");
+
+const adminPanelButton =
+    document.getElementById("adminPanelButton");
+
+const adminCameraButton =
+    document.getElementById("adminCameraButton");
+
+const micButton =
+    document.getElementById("micButton");
+
+const cameraButton =
+    document.getElementById("cameraButton");
+
+const leaveButton =
+    document.getElementById("leaveButton");
+
+const adminVideo =
+    document.getElementById("adminVideo");
+
+const adminLogoContainer =
+    document.getElementById("adminLogoContainer");
+
+const adminModeBadge =
+    document.getElementById("adminModeBadge");
+
+const connectionStatus =
+    document.getElementById("connectionStatus");
+
+const waitingList =
+    document.getElementById("waitingList");
+
+const participantList =
+    document.getElementById("participantList");
+
+const noParticipants =
+    document.getElementById("noParticipants");
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+function initializeApplication(){
+
+    if(isAdministrator){
+
+        initializeAdministrator();
+
+    }else{
+
+        initializeParticipant();
+
+    }
+
+}
+
+
+/* =========================================================
+   ADMINISTRATOR
+========================================================= */
+
+function initializeAdministrator(){
+
+    /*
+       Administrator does not need to knock.
+    */
+
+    joinScreen.classList.add("hidden");
+
+    adminModeBadge.style.display = "block";
+
+    adminPanelButton.style.display = "block";
+
+    adminCameraButton.style.display = "block";
+
+    connectionStatus.textContent =
+        "● Administrator";
+
+    connectionStatus.style.color =
+        "#62ff62";
+
+}
+
+
+/* =========================================================
+   PARTICIPANT
+========================================================= */
+
+function initializeParticipant(){
+
+    adminPanelButton.style.display = "none";
+
+    adminCameraButton.style.display = "none";
+
+    /*
+       Participant must enter name.
+    */
+
+    joinScreen.classList.remove("hidden");
+
+}
+
+
+/* =========================================================
+   KNOCK
+========================================================= */
+
+knockButton.addEventListener(
+    "click",
+    async function(){
+
+        const name =
+            nameInput.value.trim();
+
+        if(!name){
+
+            alert(
+                "Please enter your name."
+            );
+
+            nameInput.focus();
+
+            return;
+
+        }
+
+
+        /*
+           Ask browser for camera and microphone
+           permission.
+
+           This gives us the actual local media
+           stream for the eventual WebRTC connection.
+        */
+
+        try{
+
+            localStream =
+                await navigator.mediaDevices.getUserMedia({
+                    video:true,
+                    audio:true
+                });
+
+        }catch(error){
+
+            console.log(
+                "Camera/microphone permission:",
+                error
+            );
+
+            /*
+               We allow the user to continue even if
+               camera/mic permission was denied.
+            */
+
+        }
+
+
+        waitingName.textContent =
+            name;
+
+
+        /*
+           Hide name-entry screen.
+        */
+
+        joinScreen.classList.add("hidden");
+
+
+        /*
+           Show waiting screen.
+        */
+
+        waitingScreen.style.display =
+            "flex";
+
+
+        /*
+           In the real system this event will be
+           sent to the server.
+
+           For this prototype we also add the
+           person to the local administrator
+           waiting room if this page is running
+           in administrator mode.
+        */
+
+        console.log(
+            "KNOCK:",
+            name
+        );
+
+    }
+);
+
+
+/* =========================================================
+   ADMINISTRATOR CAMERA
+========================================================= */
+
+adminCameraButton.addEventListener(
+    "click",
+    async function(){
+
+        if(!administratorCameraOn){
+
+            try{
+
+                const stream =
+                    await navigator.mediaDevices.getUserMedia({
+                        video:true,
+                        audio:false
+                    });
+
+                adminVideo.srcObject =
+                    stream;
+
+                adminVideo.classList.remove(
+                    "hidden"
+                );
+
+                adminLogoContainer.classList.add(
+                    "hidden"
+                );
+
+                administratorCameraOn =
+                    true;
+
+                adminCameraButton.textContent =
+                    "Show Safe Insight Logo";
+
+                updateAdministratorCameraStatus();
+
+            }catch(error){
+
+                alert(
+                    "Unable to access the administrator camera."
+                );
+
+                console.error(error);
+
+            }
+
+        }else{
+
+            /*
+               Return to logo.
+            */
+
+            if(adminVideo.srcObject){
+
+                adminVideo.srcObject
+                    .getTracks()
+                    .forEach(
+                        track => track.stop()
+                    );
+
+            }
+
+            adminVideo.srcObject =
+                null;
+
+            adminVideo.classList.add(
+                "hidden"
+            );
+
+            adminLogoContainer.classList.remove(
+                "hidden"
+            );
+
+            administratorCameraOn =
+                false;
+
+            adminCameraButton.textContent =
+                "Administrator Video";
+
+            updateAdministratorCameraStatus();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ADMIN MIC
+========================================================= */
+
+micButton.addEventListener(
+    "click",
+    function(){
+
+        if(!localStream){
+
+            /*
+               Administrator can request microphone
+               when they first click.
+            */
+
+            requestAdministratorMedia();
+
+            return;
+
+        }
+
+        const audioTracks =
+            localStream.getAudioTracks();
+
+        if(audioTracks.length === 0){
+
+            return;
+
+        }
+
+        administratorMicOn =
+            !administratorMicOn;
+
+        audioTracks.forEach(
+            track => {
+                track.enabled =
+                    administratorMicOn;
+            }
+        );
+
+        updateAdministratorMicButton();
+
+    }
+);
+
+
+/* =========================================================
+   ADMIN CAMERA BUTTON
+========================================================= */
+
+cameraButton.addEventListener(
+    "click",
+    function(){
+
+        if(!localStream){
+
+            requestAdministratorMedia();
+
+            return;
+
+        }
+
+        const videoTracks =
+            localStream.getVideoTracks();
+
+        if(videoTracks.length === 0){
+
+            return;
+
+        }
+
+        const currentlyEnabled =
+            videoTracks[0].enabled;
+
+        videoTracks.forEach(
+            track => {
+                track.enabled =
+                    !currentlyEnabled;
+            }
+        );
+
+        updateCameraButton();
+
+    }
+);
+
+
+/* =========================================================
+   REQUEST ADMIN MEDIA
+========================================================= */
+
+async function requestAdministratorMedia(){
+
+    try{
+
+        localStream =
+            await navigator.mediaDevices.getUserMedia({
+                video:true,
+                audio:true
+            });
+
+        administratorCameraOn =
+            true;
+
+        administratorMicOn =
+            true;
+
+        updateCameraButton();
+
+        updateAdministratorMicButton();
+
+    }catch(error){
+
+        alert(
+            "Camera and microphone permission was not granted."
+        );
+
+        console.error(error);
+
+    }
+
+}
+
+
+/* =========================================================
+   CAMERA BUTTON DISPLAY
+========================================================= */
+
+function updateCameraButton(){
+
+    if(!localStream){
+
+        cameraButton.textContent =
+            "📹 Camera";
+
+        return;
+
+    }
+
+    const tracks =
+        localStream.getVideoTracks();
+
+    if(!tracks.length){
+
+        return;
+
+    }
+
+    if(tracks[0].enabled){
+
+        cameraButton.textContent =
+            "📹 Camera ON";
+
+        cameraButton.classList.add(
+            "active"
+        );
+
+    }else{
+
+        cameraButton.textContent =
+            "📹 Camera OFF";
+
+        cameraButton.classList.remove(
+            "active"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MIC BUTTON DISPLAY
+========================================================= */
+
+function updateAdministratorMicButton(){
+
+    if(!localStream){
+
+        micButton.textContent =
+            "🎤 Mic";
+
+        return;
+
+    }
+
+    const tracks =
+        localStream.getAudioTracks();
+
+    if(!tracks.length){
+
+        return;
+
+    }
+
+    if(tracks[0].enabled){
+
+        micButton.textContent =
+            "🎤 Mic ON";
+
+        micButton.classList.add(
+            "active"
+        );
+
+    }else{
+
+        micButton.textContent =
+            "🔇 Mic OFF";
+
+        micButton.classList.remove(
+            "active"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ADMINISTRATOR CAMERA STATUS
+========================================================= */
+
+function updateAdministratorCameraStatus(){
+
+    const status =
+        document.getElementById(
+            "adminCameraStatus"
+        );
+
+    if(administratorCameraOn){
+
+        status.textContent =
+            "📹";
+
+        status.classList.remove(
+            "off"
+        );
+
+    }else{
+
+        status.textContent =
+            "📹";
+
+        status.classList.add(
+            "off"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ADMINISTRATOR MIC STATUS
+========================================================= */
+
+function updateAdministratorMicStatus(){
+
+    const status =
+        document.getElementById(
+            "adminMicStatus"
+        );
+
+    if(administratorMicOn){
+
+        status.textContent =
+            "🎤";
+
+        status.classList.remove(
+            "off"
+        );
+
+    }else{
+
+        status.textContent =
+            "🔇";
+
+        status.classList.add(
+            "off"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ADMIN PANEL
+========================================================= */
+
+adminPanelButton.addEventListener(
+    "click",
+    function(){
+
+        if(adminPanel.style.display === "flex"){
+
+            adminPanel.style.display =
+                "none";
+
+        }else{
+
+            adminPanel.style.display =
+                "flex";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ADD WAITING PARTICIPANT
+========================================================= */
+
+function addWaitingParticipant(name){
+
+    const participant = {
+
+        id:
+            nextParticipantId++,
+
+        name:name
+
+    };
+
+    waitingParticipants.push(
+        participant
+    );
+
+    renderWaitingParticipants();
+
+}
+
+
+/* =========================================================
+   RENDER WAITING PARTICIPANTS
+========================================================= */
+
+function renderWaitingParticipants(){
+
+    waitingList.innerHTML = "";
+
+
+    if(waitingParticipants.length === 0){
+
+        waitingList.innerHTML =
+            '<p style="color:#777;">Nobody is waiting.</p>';
+
+        return;
+
+    }
+
+
+    waitingParticipants.forEach(
+        participant => {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+            div.className =
+                "waitingParticipant";
+
+
+            div.innerHTML = `
+
+                <div class="waitingParticipantName">
+                    ${escapeHtml(participant.name)}
+                </div>
+
+                <button
+                    class="allowButton"
+                    onclick="allowParticipant(${participant.id})"
+                >
+                    Allow Entry
+                </button>
+
+                <button
+                    class="denyButton"
+                    onclick="denyParticipant(${participant.id})"
+                >
+                    Deny
+                </button>
+
+            `;
+
+            waitingList.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   ALLOW PARTICIPANT
+========================================================= */
+
+function allowParticipant(id){
+
+    const index =
+        waitingParticipants.findIndex(
+            p => p.id === id
+        );
+
+    if(index === -1){
+
+        return;
+
+    }
+
+    const participant =
+        waitingParticipants[index];
+
+
+    waitingParticipants.splice(
+        index,
+        1
+    );
+
+
+    participant.cameraOn =
+        true;
+
+    participant.micOn =
+        true;
+
+    participant.micLocked =
+        false;
+
+
+    participants.push(
+        participant
+    );
+
+
+    renderWaitingParticipants();
+
+    renderParticipants();
+
+    assignParticipantToTile(
+        participant
+    );
+
+}
+
+
+/* =========================================================
+   DENY PARTICIPANT
+========================================================= */
+
+function denyParticipant(id){
+
+    waitingParticipants =
+        waitingParticipants.filter(
+            p => p.id !== id
+        );
+
+    renderWaitingParticipants();
+
+}
+
+
+/* =========================================================
+   RENDER PARTICIPANTS
+========================================================= */
+
+function renderParticipants(){
+
+    participantList.innerHTML =
+        "<strong>Participants</strong>";
+
+
+    if(participants.length === 0){
+
+        participantList.innerHTML +=
+            '<p style="color:#777;">No participants have entered.</p>';
+
+        return;
+
+    }
+
+
+    participants.forEach(
+        participant => {
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+            div.className =
+                "participantControl";
+
+
+            div.innerHTML = `
+
+                <div class="participantName">
+                    ${escapeHtml(participant.name)}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:#aaa;
+                    margin-bottom:8px;
+                ">
+
+                    Camera:
+                    ${participant.cameraOn ? "ON" : "OFF"}
+
+                    &nbsp;&nbsp;
+
+                    Mic:
+                    ${participant.micOn ? "ON" : "OFF"}
+
+                    ${
+                        participant.micLocked
+                        ? " 🔒"
+                        : ""
+                    }
+
+                </div>
+
+                <div class="controlRow">
+
+                    <button
+                        onclick="toggleParticipantCamera(${participant.id})"
+                    >
+                        ${
+                            participant.cameraOn
+                            ? "Camera OFF"
+                            : "Camera ON"
+                        }
+                    </button>
+
+                    <button
+                        onclick="toggleParticipantMic(${participant.id})"
+                    >
+                        ${
+                            participant.micOn
+                            ? "Mute Mic"
+                            : "Unmute Mic"
+                        }
+                    </button>
+
+                    <button
+                        class="${
+                            participant.micLocked
+                            ? "locked"
+                            : ""
+                        }"
+                        onclick="toggleMicLock(${participant.id})"
+                    >
+                        ${
+                            participant.micLocked
+                            ? "Unlock Mic"
+                            : "🔒 Lock Mic"
+                        }
+                    </button>
+
+                    <button
+                        class="danger"
+                        onclick="removeParticipant(${participant.id})"
+                    >
+                        Remove
+                    </button>
+
+                </div>
+
+            `;
+
+            participantList.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   PARTICIPANT CAMERA
+========================================================= */
+
+function toggleParticipantCamera(id){
+
+    const participant =
+        participants.find(
+            p => p.id === id
+        );
+
+    if(!participant){
+
+        return;
+
+    }
+
+    participant.cameraOn =
+        !participant.cameraOn;
+
+
+    updateParticipantTile(
+        participant
+    );
+
+    renderParticipants();
+
+}
+
+
+/* =========================================================
+   PARTICIPANT MIC
+========================================================= */
+
+function toggleParticipantMic(id){
+
+    const participant =
+        participants.find(
+            p => p.id === id
+        );
+
+    if(!participant){
+
+        return;
+
+    }
+
+    /*
+       Locked microphone cannot be changed
+       by participant, but administrator can
+       always change it.
+    */
+
+    participant.micOn =
+        !participant.micOn;
+
+
+    updateParticipantTile(
+        participant
+    );
+
+    renderParticipants();
+
+}
+
+
+/* =========================================================
+   LOCK MICROPHONE
+========================================================= */
+
+function toggleMicLock(id){
+
+    const participant =
+        participants.find(
+            p => p.id === id
+        );
+
+    if(!participant){
+
+        return;
+
+    }
+
+
+    participant.micLocked =
+        !participant.micLocked;
+
+
+    /*
+       Locking microphone automatically mutes it.
+    */
+
+    if(participant.micLocked){
+
+        participant.micOn =
+            false;
+
+    }
+
+
+    updateParticipantTile(
+        participant
+    );
+
+    renderParticipants();
+
+}
+
+
+/* =========================================================
+   REMOVE PARTICIPANT
+========================================================= */
+
+function removeParticipant(id){
+
+    const participant =
+        participants.find(
+            p => p.id === id
+        );
+
+    if(!participant){
+
+        return;
+
+    }
+
+
+    participants =
+        participants.filter(
+            p => p.id !== id
+        );
+
+
+    /*
+       Find and clear their tile.
+    */
+
+    document
+        .querySelectorAll(
+            ".videoTile[data-participant-id]"
+        )
+        .forEach(
+            tile => {
+
+                if(
+                    Number(
+                        tile.dataset.participantId
+                    ) === id
+                ){
+
+                    clearParticipantTile(
+                        tile
+                    );
+
+                }
+
+            }
+        );
+
+
+    renderParticipants();
+
+}
+
+
+/* =========================================================
+   ASSIGN PARTICIPANT TILE
+========================================================= */
+
+function assignParticipantToTile(
+    participant
+){
+
+    const availableTiles = [
+        1,
+        2,
+        3,
+        4,
+        6,
+        7,
+        8,
+        9
+    ];
+
+
+    for(
+        const slot of availableTiles
+    ){
+
+        const tile =
+            document.getElementById(
+                "tile" + slot
+            );
+
+
+        if(
+            !tile.dataset.participantId
+        ){
+
+            tile.dataset.participantId =
+                participant.id;
+
+            updateParticipantTile(
+                participant
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    alert(
+        "The conference is full. Maximum 8 participants plus the administrator."
+    );
+
+}
+
+
+/* =========================================================
+   UPDATE PARTICIPANT TILE
+========================================================= */
+
+function updateParticipantTile(
+    participant
+){
+
+    const tile =
+        document.querySelector(
+            `.videoTile[data-participant-id="${participant.id}"]`
+        );
+
+
+    if(!tile){
+
+        return;
+
+    }
+
+
+    tile.classList.remove(
+        "empty"
+    );
+
+
+    /*
+       Remove old contents.
+    */
+
+    tile.innerHTML = "";
+
+
+    /*
+       Video element.
+    */
+
+    const video =
+        document.createElement(
+            "video"
+        );
+
+    video.autoplay =
+        true;
+
+    video.playsInline =
+        true;
+
+    video.muted =
+        true;
+
+
+    /*
+       For the prototype we don't have the
+       participant's remote stream yet.
+
+       Later this element will receive the
+       WebRTC remote MediaStream.
+    */
+
+    if(!participant.cameraOn){
+
+        video.style.display =
+            "none";
+
+    }
+
+
+    tile.appendChild(
+        video
+    );
+
+
+    /*
+       Camera-off display.
+    */
+
+    if(!participant.cameraOn){
+
+        const cameraOff =
+            document.createElement(
+                "div"
+            );
+
+        cameraOff.style.cssText = `
+            position:absolute;
+            inset:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:#111;
+            color:#aaa;
+            font-size:16px;
+        `;
+
+        cameraOff.textContent =
+            "Camera Off";
+
+        tile.appendChild(
+            cameraOff
+        );
+
+    }
+
+
+    /*
+       Name label.
+    */
+
+    const label =
+        document.createElement(
+            "div"
+        );
+
+    label.className =
+        "tileLabel";
+
+    label.textContent =
+        participant.name;
+
+    tile.appendChild(
+        label
+    );
+
+
+    /*
+       Status icons.
+    */
+
+    const status =
+        document.createElement(
+            "div"
+        );
+
+    status.className =
+        "tileStatus";
+
+
+    const mic =
+        document.createElement(
+            "div"
+        );
+
+    mic.className =
+        "statusIcon";
+
+    mic.textContent =
+        participant.micOn
+        ? "🎤"
+        : "🔇";
+
+
+    if(!participant.micOn){
+
+        mic.classList.add(
+            "off"
+        );
+
+    }
+
+
+    const camera =
+        document.createElement(
+            "div"
+        );
+
+    camera.className =
+        "statusIcon";
+
+    camera.textContent =
+        participant.cameraOn
+        ? "📹"
+        : "📹";
+
+
+    if(!participant.cameraOn){
+
+        camera.classList.add(
+            "off"
+        );
+
+    }
+
+
+    status.appendChild(
+        mic
+    );
+
+    status.appendChild(
+        camera
+    );
+
+    tile.appendChild(
+        status
+    );
+
+
+    /*
+       Administrator controls.
+    */
+
+    if(isAdministrator){
+
+        const controls =
+            document.createElement(
+                "div"
+            );
+
+        controls.className =
+            "adminControls";
+
+
+        controls.innerHTML = `
+
+            <button
+                onclick="toggleParticipantCamera(${participant.id})"
+            >
+                ${
+                    participant.cameraOn
+                    ? "Camera OFF"
+                    : "Camera ON"
+                }
+            </button>
+
+            <button
+                onclick="toggleParticipantMic(${participant.id})"
+            >
+                ${
+                    participant.micOn
+                    ? "Mute"
+                    : "Unmute"
+                }
+            </button>
+
+            <button
+                onclick="toggleMicLock(${participant.id})"
+            >
+                ${
+                    participant.micLocked
+                    ? "Unlock"
+                    : "🔒 Lock Mic"
+                }
+            </button>
+
+            <button
+                class="danger"
+                onclick="removeParticipant(${participant.id})"
+            >
+                Remove
+            </button>
+
+        `;
+
+        tile.appendChild(
+            controls
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CLEAR PARTICIPANT TILE
+========================================================= */
+
+function clearParticipantTile(
+    tile
+){
+
+    tile.removeAttribute(
+        "data-participant-id"
+    );
+
+    tile.className =
+        "videoTile empty";
+
+    tile.innerHTML = `
+
+        <div class="tileLabel">
+            Waiting for Participant
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   LEAVE
+========================================================= */
+
+leaveButton.addEventListener(
+    "click",
+    function(){
+
+        if(
+            !confirm(
+                "Leave this conference?"
+            )
+        ){
+
+            return;
+
+        }
+
+
+        if(localStream){
+
+            localStream
+                .getTracks()
+                .forEach(
+                    track => track.stop()
+                );
+
+        }
+
+
+        if(adminVideo.srcObject){
+
+            adminVideo.srcObject
+                .getTracks()
+                .forEach(
+                    track => track.stop()
+                );
+
+        }
+
+
+        window.location.reload();
+
+    }
+);
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(
+    text
+){
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.textContent =
+        text;
+
+    return div.innerHTML;
+
+}
+
+
+/* =========================================================
+   DEMO ADMIN WAITING PARTICIPANTS
+========================================================= */
+
+/*
+   This is ONLY for testing the interface.
+
+   When running:
+
+       index.html?admin=true
+
+   you can use these sample requests.
+
+   They will be removed when we connect the
+   real backend.
+*/
+
+if(isAdministrator){
+
+    setTimeout(
+        function(){
+
+            addWaitingParticipant(
+                "John Smith"
+            );
+
+            addWaitingParticipant(
+                "Jane Doe"
+            );
+
+        },
+        800
+    );
+
+}
+
+
+/* =========================================================
+   START APPLICATION
+========================================================= */
+
+initializeApplication();
+
+</script>
+
+
+</body>
+</html>
