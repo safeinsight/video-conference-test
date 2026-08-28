@@ -2531,34 +2531,28 @@ async function allowParticipant(id){
 
 async function removeParticipant(id){
 
-    console.log(
-        "Removing participant:",
-        id
-    );
+    const participant =
+        participants.find(
+            p => p.id === id
+        );
 
+    if(!participant){
+        return;
+    }
 
+    /*
+     * Remove participant from Supabase.
+     */
     const {
-        data,
         error
     } =
     await supabaseClient
         .from("conference_participants")
-        .update({
-
-            status:
-                "removed",
-
-            updated_at:
-                new Date().toISOString()
-
-        })
+        .delete()
         .eq(
             "id",
             id
-        )
-        .select()
-        .single();
-
+        );
 
     if(error){
 
@@ -2568,38 +2562,52 @@ async function removeParticipant(id){
         );
 
         alert(
-            "Unable to remove participant.\n\n" +
-            error.message
+            "Unable to remove participant from the conference."
         );
 
         return;
-
     }
 
-
     console.log(
-        "Participant removed:",
-        data
+        "Participant deleted from Supabase:",
+        id
     );
 
-
     /*
-       Remove locally from administrator view.
-    */
-
+     * Remove participant from local
+     * administrator state.
+     */
     participants =
         participants.filter(
             p => p.id !== id
         );
 
+    /*
+     * Find and clear their tile.
+     */
+    document
+        .querySelectorAll(
+            ".videoTile[data-participant-id]"
+        )
+        .forEach(
+            tile => {
+
+                if(
+                    String(
+                        tile.dataset.participantId
+                    ) === String(id)
+                ){
+
+                    clearParticipantTile(
+                        tile
+                    );
+
+                }
+
+            }
+        );
 
     renderParticipants();
-
-
-    /*
-       Notify participant locally if their
-       realtime subscription receives the update.
-    */
 
 }
 
@@ -3378,62 +3386,6 @@ function toggleMicLock(id){
     updateParticipantTile(
         participant
     );
-
-    renderParticipants();
-
-}
-
-
-/* =========================================================
-   REMOVE PARTICIPANT
-========================================================= */
-
-function removeParticipant(id){
-
-    const participant =
-        participants.find(
-            p => p.id === id
-        );
-
-    if(!participant){
-
-        return;
-
-    }
-
-
-    participants =
-        participants.filter(
-            p => p.id !== id
-        );
-
-
-    /*
-       Find and clear their tile.
-    */
-
-    document
-        .querySelectorAll(
-            ".videoTile[data-participant-id]"
-        )
-        .forEach(
-            tile => {
-
-                if(
-                    Number(
-                        tile.dataset.participantId
-                    ) === id
-                ){
-
-                    clearParticipantTile(
-                        tile
-                    );
-
-                }
-
-            }
-        );
-
 
     renderParticipants();
 
