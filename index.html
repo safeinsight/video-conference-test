@@ -2673,27 +2673,27 @@ function renderWaitingParticipants(){
                 "waitingParticipant";
 
 
-            div.innerHTML = `
+div.innerHTML = `
 
-                <div class="waitingParticipantName">
-                    ${escapeHtml(participant.name)}
-                </div>
+    <div class="waitingParticipantName">
+        ${escapeHtml(participant.name)}
+    </div>
 
-                <button
-                    class="allowButton"
-                    onclick="allowParticipant(${participant.id})"
-                >
-                    Allow Entry
-                </button>
+    <button
+        class="allowButton"
+        onclick="allowParticipant('${participant.id}')"
+    >
+        Allow Entry
+    </button>
 
-                <button
-                    class="denyButton"
-                    onclick="denyParticipant(${participant.id})"
-                >
-                    Deny
-                </button>
+    <button
+        class="denyButton"
+        onclick="denyParticipant('${participant.id}')"
+    >
+        Deny
+    </button>
 
-            `;
+`;
 
             waitingList.appendChild(
                 div
