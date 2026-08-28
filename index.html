@@ -2413,6 +2413,7 @@ function updateAdministratorParticipant(participant){
     if(
         participant.status === "denied" ||
         participant.status === "removed"
+        participant.status === "left"
     ){
 
         if(index !== -1){
@@ -3926,18 +3927,25 @@ leaveButton.addEventListener(
         /*
          * DELETE participant record from Supabase.
          */
-       const {
+const {
+    data,
     error
 } =
 await supabaseClient
     .from(
         "conference_participants"
     )
-    .delete()
+    .update({
+        status: "left",
+        updated_at:
+            new Date().toISOString()
+    })
     .eq(
         "id",
         participantId
-    );
+    )
+    .select()
+    .single();
 
         /*
          * Check for database error.
