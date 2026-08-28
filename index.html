@@ -2261,7 +2261,12 @@ function subscribeToConference(){
 
 
                 const deletedId =
-                    payload.old.id;
+                payload.old.id;
+
+            console.log(
+            "DELETE EVENT PARTICIPANT ID:",
+            deletedId
+);
 
 
                 /*
@@ -3890,54 +3895,86 @@ leaveButton.addEventListener(
 
         }
 
+
         /*
-         * Delete our participant record
-         * from Supabase.
+         * Make sure we have the participant ID.
          */
-        if(window.myParticipantId){
+        const participantId =
+            window.myParticipantId;
 
-            console.log(
-                "Participant leaving:",
-                window.myParticipantId
+        console.log(
+            "LEAVE CLICKED - Participant ID:",
+            participantId
+        );
+
+
+        if(!participantId){
+
+            console.error(
+                "LEAVE ERROR: No participant ID found."
             );
 
-            const {
-                error
-            } =
-            await supabaseClient
-                .from(
-                    "conference_participants"
-                )
-                .delete()
-                .eq(
-                    "id",
-                    window.myParticipantId
-                );
-
-            if(error){
-
-                console.error(
-                    "LEAVE DELETE ERROR:",
-                    error
-                );
-
-                alert(
-                    "Unable to leave the conference.\n\n" +
-                    error.message
-                );
-
-                return;
-
-            }
-
-            console.log(
-                "Participant deleted from Supabase."
+            alert(
+                "Unable to identify your conference session."
             );
 
-            window.myParticipantId =
-                null;
+            return;
 
         }
+
+
+        /*
+         * DELETE participant record from Supabase.
+         */
+        const {
+            data,
+            error
+        } =
+        await supabaseClient
+            .from(
+                "conference_participants"
+            )
+            .delete()
+            .eq(
+                "id",
+                participantId
+            )
+            .select("id")
+            .single();
+
+
+        /*
+         * Check for database error.
+         */
+        if(error){
+
+            console.error(
+                "LEAVE DELETE ERROR:",
+                error
+            );
+
+            alert(
+                "Unable to leave the conference.\n\n" +
+                error.message
+            );
+
+            return;
+
+        }
+
+
+        console.log(
+            "LEAVE DELETE SUCCESS:",
+            data
+        );
+
+
+        /*
+         * Clear our stored participant ID.
+         */
+        window.myParticipantId =
+            null;
+
 
         /*
          * Stop local camera/microphone.
@@ -3954,6 +3991,7 @@ leaveButton.addEventListener(
                 null;
 
         }
+
 
         /*
          * Stop administrator video
@@ -3972,8 +4010,9 @@ leaveButton.addEventListener(
 
         }
 
+
         /*
-         * Return to the join screen.
+         * Reload the participant page.
          */
         window.location.reload();
 
