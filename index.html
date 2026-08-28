@@ -2531,51 +2531,56 @@ async function allowParticipant(id){
 
 async function removeParticipant(id){
 
-    const participant =
-        participants.find(
-            p => p.id === id
-        );
-
-    if(!participant){
-        return;
-    }
+    console.log(
+        "Removing participant:",
+        id
+    );
 
     /*
-     * Remove participant from Supabase.
+     * First tell the participant that they
+     * have been removed.
+     *
+     * This allows the participant browser
+     * to react immediately.
      */
     const {
-        error
+        error: updateError
     } =
     await supabaseClient
         .from("conference_participants")
-        .delete()
+        .update({
+            status: "removed",
+            updated_at:
+                new Date().toISOString()
+        })
         .eq(
             "id",
             id
         );
 
-    if(error){
+    if(updateError){
 
         console.error(
-            "REMOVE PARTICIPANT ERROR:",
-            error
+            "REMOVE PARTICIPANT UPDATE ERROR:",
+            updateError
         );
 
         alert(
-            "Unable to remove participant from the conference."
+            "Unable to remove participant.\n\n" +
+            updateError.message
         );
 
         return;
     }
 
     console.log(
-        "Participant deleted from Supabase:",
+        "Participant marked removed:",
         id
     );
 
     /*
-     * Remove participant from local
-     * administrator state.
+     * Remove immediately from the
+     * administrator's local state.
      */
     participants =
         participants.filter(
@@ -2583,7 +2588,7 @@ async function removeParticipant(id){
         );
 
     /*
-     * Find and clear their tile.
+     * Clear the participant's video tile.
      */
     document
         .querySelectorAll(
@@ -2608,6 +2613,46 @@ async function removeParticipant(id){
         );
 
     renderParticipants();
+
+    /*
+     * Give the participant browser a moment
+     * to receive the "removed" realtime event,
+     * then permanently delete the database row.
+     */
+    setTimeout(
+        async function(){
+
+            const {
+                error: deleteError
+            } =
+            await supabaseClient
+                .from(
+                    "conference_participants"
+                )
+                .delete()
+                .eq(
+                    "id",
+                    id
+                );
+
+            if(deleteError){
+
+                console.error(
+                    "REMOVE PARTICIPANT DELETE ERROR:",
+                    deleteError
+                );
+
+                return;
+            }
+
+            console.log(
+                "Participant permanently deleted:",
+                id
+            );
+
+        },
+        1500
+    );
 
 }
 
