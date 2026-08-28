@@ -1897,6 +1897,13 @@ function showRemovedScreen(){
     waitingScreen.style.display =
         "none";
 
+if(conferenceArea){
+
+    conferenceArea.style.display =
+        "none";
+
+}
+    
 
     /*
        Return to join screen.
@@ -2227,6 +2234,91 @@ function subscribeToConference(){
             }
 
         )
+
+        .on(
+
+            "postgres_changes",
+
+            {
+                event: "DELETE",
+
+                schema: "public",
+
+                table:
+                    "conference_participants",
+
+                filter:
+                    "room_id=eq." + ROOM_ID
+
+            },
+
+            function(payload){
+
+                console.log(
+                    "PARTICIPANT DELETED:",
+                    payload.old
+                );
+
+
+                const deletedId =
+                    payload.old.id;
+
+
+                /*
+                 * Remove from waiting participants.
+                 */
+                waitingParticipants =
+                    waitingParticipants.filter(
+                        p => p.id !== deletedId
+                    );
+
+
+                /*
+                 * Remove from active participants.
+                 */
+                participants =
+                    participants.filter(
+                        p => p.id !== deletedId
+                    );
+
+
+                /*
+                 * Clear participant's video tile.
+                 */
+                document
+                    .querySelectorAll(
+                        ".videoTile[data-participant-id]"
+                    )
+                    .forEach(
+                        tile => {
+
+                            if(
+                                String(
+                                    tile.dataset.participantId
+                                ) === String(deletedId)
+                            ){
+
+                                clearParticipantTile(
+                                    tile
+                                );
+
+                            }
+
+                        }
+                    );
+
+
+                /*
+                 * Refresh both administrator lists.
+                 */
+                renderWaitingParticipants();
+
+                renderParticipants();
+
+            }
+
+        )
+        
         .subscribe(
 
             function(status){
@@ -3793,7 +3885,9 @@ leaveButton.addEventListener(
                 "Leave this conference?"
             )
         ){
+
             return;
+
         }
 
         /*
@@ -3801,6 +3895,11 @@ leaveButton.addEventListener(
          * from Supabase.
          */
         if(window.myParticipantId){
+
+            console.log(
+                "Participant leaving:",
+                window.myParticipantId
+            );
 
             const {
                 error
@@ -3818,20 +3917,21 @@ leaveButton.addEventListener(
             if(error){
 
                 console.error(
-                    "LEAVE CONFERENCE DELETE ERROR:",
+                    "LEAVE DELETE ERROR:",
                     error
                 );
 
                 alert(
-                    "Unable to leave the conference. Please try again."
+                    "Unable to leave the conference.\n\n" +
+                    error.message
                 );
 
                 return;
+
             }
 
             console.log(
-                "Participant deleted from Supabase:",
-                window.myParticipantId
+                "Participant deleted from Supabase."
             );
 
             window.myParticipantId =
@@ -3856,8 +3956,8 @@ leaveButton.addEventListener(
         }
 
         /*
-         * Stop administrator stream if one
-         * exists locally.
+         * Stop administrator video
+         * if it exists on this browser.
          */
         if(adminVideo.srcObject){
 
@@ -3873,7 +3973,7 @@ leaveButton.addEventListener(
         }
 
         /*
-         * Reload the page.
+         * Return to the join screen.
          */
         window.location.reload();
 
