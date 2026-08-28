@@ -1805,34 +1805,48 @@ function subscribeToMyParticipant(
                     payload.new;
 
 
-                if(
-                    participant.status ===
-                    "approved"
-                ){
+if(
+    participant.status ===
+    "approved"
+){
 
-                    console.log(
-                        "ENTRY APPROVED"
-                    );
+    console.log(
+        "ENTRY APPROVED"
+    );
 
-                    enterConference(
-                        participant
-                    );
+    enterConference(
+        participant
+    );
 
-                }
+}
 
 
-                if(
-                    participant.status ===
-                    "denied"
-                ){
+if(
+    participant.status ===
+    "denied"
+){
 
-                    console.log(
-                        "ENTRY DENIED"
-                    );
+    console.log(
+        "ENTRY DENIED"
+    );
 
-                    showDeniedScreen();
+    showDeniedScreen();
 
-                }
+}
+
+
+if(
+    participant.status ===
+    "removed"
+){
+
+    console.log(
+        "REMOVED BY ADMINISTRATOR"
+    );
+
+    showRemovedScreen();
+
+}
 
             }
         )
@@ -1850,41 +1864,131 @@ function subscribeToMyParticipant(
 }
 
 /* =========================================================
-   ENTER CONFERENCE
+   REMOVED BY ADMINISTRATOR
 ========================================================= */
 
-function enterConference(
-    participant
-){
+function showRemovedScreen(){
 
-    console.log(
-        "ENTRY APPROVED:",
-        participant
-    );
+    /*
+       Stop local camera/microphone.
+    */
+
+    if(localStream){
+
+        localStream
+            .getTracks()
+            .forEach(
+                track => track.stop()
+            );
+
+        localStream = null;
+
+    }
 
 
     waitingScreen.style.display =
         "none";
 
 
+    /*
+       Return to join screen.
+    */
+
+    joinScreen.classList.remove(
+        "hidden"
+    );
+
+
+    nameInput.value =
+        "";
+
+
+    knockButton.disabled =
+        false;
+
+
+    knockButton.textContent =
+        "🔔 Knock to Enter";
+
+
     connectionStatus.textContent =
-        "● Connected";
+        "● Removed from conference";
 
     connectionStatus.style.color =
-        "#62ff62";
-
-
-    /*
-       At this point Phase 2 has completed
-       the participant handshake.
-
-       Phase 3 will attach the actual remote
-       video stream to the participant tile.
-    */
+        "#ff4444";
 
 
     alert(
-        "You have been admitted to the conference."
+        "The administrator has removed you from the conference."
+    );
+
+}
+
+/* =========================================================
+   ENTER CONFERENCE
+========================================================= */
+
+function enterConference(participant){
+
+    console.log(
+        "================================"
+    );
+
+    console.log(
+        "ENTER CONFERENCE CALLED"
+    );
+
+    console.log(
+        "Participant:",
+        participant
+    );
+
+    console.log(
+        "================================"
+    );
+
+
+    /*
+       Hide waiting screen.
+    */
+
+    if(waitingScreen){
+
+        waitingScreen.style.display =
+            "none";
+
+    }
+
+
+    /*
+       Show conference interface.
+    */
+
+    if(conferenceArea){
+
+        conferenceArea.style.display =
+            "flex";
+
+    }
+
+
+    /*
+       Update connection indicator.
+    */
+
+    if(connectionStatus){
+
+        connectionStatus.textContent =
+            "● Connected";
+
+        connectionStatus.style.color =
+            "#62ff62";
+
+    }
+
+
+    console.log(
+        "Participant entered conference."
     );
 
 }
@@ -2086,6 +2190,110 @@ function addWaitingParticipantFromDatabase(
 }
 
 /* =========================================================
+   UPDATE ADMINISTRATOR PARTICIPANT
+========================================================= */
+
+function updateAdministratorParticipant(participant){
+
+    console.log(
+        "Updating administrator participant:",
+        participant
+    );
+
+
+    /*
+       Find participant in active list.
+    */
+
+    const index =
+        participants.findIndex(
+            p => p.id === participant.id
+        );
+
+
+    /*
+       Participant was denied.
+       Remove them from the active list.
+    */
+
+    if(
+        participant.status === "denied" ||
+        participant.status === "removed"
+    ){
+
+        if(index !== -1){
+
+            participants.splice(
+                index,
+                1
+            );
+
+        }
+
+
+        renderParticipants();
+
+        return;
+
+    }
+
+
+    /*
+       Participant was approved.
+       Add/update them in active participants.
+    */
+
+    if(
+        participant.status === "approved"
+    ){
+
+        const updatedParticipant = {
+
+            id:
+                participant.id,
+
+            name:
+                participant.participant_name,
+
+            cameraOn:
+                participant.camera_on,
+
+            micOn:
+                participant.mic_on,
+
+            micLocked:
+                participant.mic_locked
+
+        };
+
+
+        if(index === -1){
+
+            participants.push(
+                updatedParticipant
+            );
+
+        }else{
+
+            participants[index] =
+                updatedParticipant;
+
+        }
+
+
+        renderParticipants();
+
+        assignParticipantToTile(
+            updatedParticipant
+        );
+
+        return;
+
+    }
+
+}
+
+/* =========================================================
    ALLOW PARTICIPANT
 ========================================================= */
 
@@ -2217,6 +2425,84 @@ async function allowParticipant(id){
     assignParticipantToTile(
         participant
     );
+
+}
+
+/* =========================================================
+   REMOVE PARTICIPANT
+========================================================= */
+
+async function removeParticipant(id){
+
+    console.log(
+        "Removing participant:",
+        id
+    );
+
+
+    const {
+        data,
+        error
+    } =
+    await supabaseClient
+        .from("conference_participants")
+        .update({
+
+            status:
+                "removed",
+
+            updated_at:
+                new Date().toISOString()
+
+        })
+        .eq(
+            "id",
+            id
+        )
+        .select()
+        .single();
+
+
+    if(error){
+
+        console.error(
+            "REMOVE PARTICIPANT ERROR:",
+            error
+        );
+
+        alert(
+            "Unable to remove participant.\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        "Participant removed:",
+        data
+    );
+
+
+    /*
+       Remove locally from administrator view.
+    */
+
+    participants =
+        participants.filter(
+            p => p.id !== id
+        );
+
+
+    renderParticipants();
+
+
+    /*
+       Notify participant locally if their
+       realtime subscription receives the update.
+    */
 
 }
 
@@ -3540,6 +3826,141 @@ if(isAdministrator){
 
 }
 
+/* =========================================================
+   LOAD EXISTING ROOM PARTICIPANTS
+========================================================= */
+
+async function loadConferenceParticipants(){
+
+    console.log(
+        "Loading participants for room:",
+        ROOM_ID
+    );
+
+
+    const {
+        data,
+        error
+    } =
+    await supabaseClient
+        .from("conference_participants")
+        .select("*")
+        .eq(
+            "room_id",
+            ROOM_ID
+        )
+        .in(
+            "status",
+            [
+                "waiting",
+                "approved"
+            ]
+        )
+        .order(
+            "created_at",
+            {
+                ascending:true
+            }
+        );
+
+
+    if(error){
+
+        console.error(
+            "LOAD PARTICIPANTS ERROR:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        "Existing participants:",
+        data
+    );
+
+
+    /*
+       Clear current arrays.
+    */
+
+    waitingParticipants =
+        [];
+
+    participants =
+        [];
+
+
+    /*
+       Rebuild the administrator state.
+    */
+
+    data.forEach(
+        participant => {
+
+            if(
+                participant.status ===
+                "waiting"
+            ){
+
+                waitingParticipants.push({
+
+                    id:
+                        participant.id,
+
+                    name:
+                        participant.participant_name,
+
+                    databaseRecord:
+                        participant
+
+                });
+
+            }
+
+
+            if(
+                participant.status ===
+                "approved"
+            ){
+
+                participants.push({
+
+                    id:
+                        participant.id,
+
+                    name:
+                        participant.participant_name,
+
+                    cameraOn:
+                        participant.camera_on,
+
+                    micOn:
+                        participant.mic_on,
+
+                    micLocked:
+                        participant.mic_locked
+
+                });
+
+            }
+
+        }
+    );
+
+
+    renderWaitingParticipants();
+
+    renderParticipants();
+
+
+    console.log(
+        "Participant state restored."
+    );
+
+}
 
 /* =========================================================
    START APPLICATION
@@ -3549,6 +3970,8 @@ initializeApplication();
 
 
 if(isAdministrator){
+
+    loadConferenceParticipants();
 
     subscribeToConference();
 
