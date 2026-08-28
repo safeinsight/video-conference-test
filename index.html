@@ -2888,7 +2888,7 @@ function renderParticipants(){
                 <div class="controlRow">
 
                     <button
-                        onclick="toggleParticipantCamera(${participant.id})"
+                        onclick="toggleParticipantCamera('${participant.id}')"
                     >
                         ${
                             participant.cameraOn
@@ -2898,7 +2898,7 @@ function renderParticipants(){
                     </button>
 
                     <button
-                        onclick="toggleParticipantMic(${participant.id})"
+                        onclick="toggleParticipantMic('${participant.id}')"
                     >
                         ${
                             participant.micOn
@@ -2913,7 +2913,7 @@ function renderParticipants(){
                             ? "locked"
                             : ""
                         }"
-                        onclick="toggleMicLock(${participant.id})"
+                        onclick="toggleMicLock('${participant.id}')"
                     >
                         ${
                             participant.micLocked
@@ -2924,7 +2924,7 @@ function renderParticipants(){
 
                     <button
                         class="danger"
-                        onclick="removeParticipant(${participant.id})"
+                        onclick="removeParticipant('${participant.id}')"
                     >
                         Remove
                     </button>
@@ -3378,7 +3378,7 @@ function updateParticipantTile(
         controls.innerHTML = `
 
             <button
-                onclick="toggleParticipantCamera(${participant.id})"
+                onclick="toggleParticipantCamera('${participant.id}')"
             >
                 ${
                     participant.cameraOn
@@ -3388,7 +3388,7 @@ function updateParticipantTile(
             </button>
 
             <button
-                onclick="toggleParticipantMic(${participant.id})"
+                onclick="toggleParticipantMic('${participant.id}')"
             >
                 ${
                     participant.micOn
@@ -3398,7 +3398,7 @@ function updateParticipantTile(
             </button>
 
             <button
-                onclick="toggleMicLock(${participant.id})"
+                onclick="toggleMicLock('${participant.id}')"
             >
                 ${
                     participant.micLocked
@@ -3409,7 +3409,7 @@ function updateParticipantTile(
 
             <button
                 class="danger"
-                onclick="removeParticipant(${participant.id})"
+                onclick="removeParticipant('${participant.id}')"
             >
                 Remove
             </button>
