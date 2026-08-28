@@ -3741,19 +3741,62 @@ function clearParticipantTile(
 
 leaveButton.addEventListener(
     "click",
-    function(){
+    async function(){
 
         if(
             !confirm(
                 "Leave this conference?"
             )
         ){
-
             return;
+        }
+
+        /*
+         * Delete our participant record
+         * from Supabase.
+         */
+        if(window.myParticipantId){
+
+            const {
+                error
+            } =
+            await supabaseClient
+                .from(
+                    "conference_participants"
+                )
+                .delete()
+                .eq(
+                    "id",
+                    window.myParticipantId
+                );
+
+            if(error){
+
+                console.error(
+                    "LEAVE CONFERENCE DELETE ERROR:",
+                    error
+                );
+
+                alert(
+                    "Unable to leave the conference. Please try again."
+                );
+
+                return;
+            }
+
+            console.log(
+                "Participant deleted from Supabase:",
+                window.myParticipantId
+            );
+
+            window.myParticipantId =
+                null;
 
         }
 
-
+        /*
+         * Stop local camera/microphone.
+         */
         if(localStream){
 
             localStream
@@ -3762,9 +3805,15 @@ leaveButton.addEventListener(
                     track => track.stop()
                 );
 
+            localStream =
+                null;
+
         }
 
-
+        /*
+         * Stop administrator stream if one
+         * exists locally.
+         */
         if(adminVideo.srcObject){
 
             adminVideo.srcObject
@@ -3773,9 +3822,14 @@ leaveButton.addEventListener(
                     track => track.stop()
                 );
 
+            adminVideo.srcObject =
+                null;
+
         }
 
-
+        /*
+         * Reload the page.
+         */
         window.location.reload();
 
     }
