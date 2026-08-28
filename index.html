@@ -1757,32 +1757,47 @@ function subscribeToMyParticipant(
     participantId
 ){
 
+    console.log(
+        "Starting participant subscription:",
+        participantId
+    );
+
+
     supabaseClient
         .channel(
             "participant-" + participantId
         )
         .on(
-
             "postgres_changes",
-
             {
                 event: "UPDATE",
-
                 schema: "public",
-
-                table:
-                    "conference_participants",
-
+                table: "conference_participants",
                 filter:
                     "id=eq." + participantId
-
             },
-
             function(payload){
 
                 console.log(
-                    "Participant update:",
+                    "================================"
+                );
+
+                console.log(
+                    "PARTICIPANT UPDATE RECEIVED"
+                );
+
+                console.log(
+                    "OLD:",
+                    payload.old
+                );
+
+                console.log(
+                    "NEW:",
                     payload.new
+                );
+
+                console.log(
+                    "================================"
                 );
 
 
@@ -1790,14 +1805,14 @@ function subscribeToMyParticipant(
                     payload.new;
 
 
-                /*
-                   Administrator approved entry.
-                */
-
                 if(
                     participant.status ===
                     "approved"
                 ){
+
+                    console.log(
+                        "ENTRY APPROVED"
+                    );
 
                     enterConference(
                         participant
@@ -1806,24 +1821,22 @@ function subscribeToMyParticipant(
                 }
 
 
-                /*
-                   Administrator denied entry.
-                */
-
                 if(
                     participant.status ===
                     "denied"
                 ){
+
+                    console.log(
+                        "ENTRY DENIED"
+                    );
 
                     showDeniedScreen();
 
                 }
 
             }
-
         )
         .subscribe(
-
             function(status){
 
                 console.log(
@@ -1832,7 +1845,6 @@ function subscribeToMyParticipant(
                 );
 
             }
-
         );
 
 }
@@ -2077,9 +2089,7 @@ function addWaitingParticipantFromDatabase(
    ALLOW PARTICIPANT
 ========================================================= */
 
-async function allowParticipant(
-    id
-){
+async function allowParticipant(id){
 
     console.log(
         "Allowing participant:",
@@ -2087,17 +2097,19 @@ async function allowParticipant(
     );
 
 
+    /*
+       Update the participant's status.
+    */
+
     const {
+        data,
         error
     } =
     await supabaseClient
-        .from(
-            "conference_participants"
-        )
+        .from("conference_participants")
         .update({
 
-            status:
-                "approved",
+            status: "approved",
 
             updated_at:
                 new Date().toISOString()
@@ -2106,18 +2118,25 @@ async function allowParticipant(
         .eq(
             "id",
             id
-        );
+        )
+        .select()
+        .single();
 
+
+    /*
+       Check for database error.
+    */
 
     if(error){
 
         console.error(
-            "Allow error:",
+            "ALLOW PARTICIPANT ERROR:",
             error
         );
 
         alert(
-            "Unable to allow participant."
+            "Unable to allow participant.\n\n" +
+            error.message
         );
 
         return;
@@ -2126,12 +2145,13 @@ async function allowParticipant(
 
 
     console.log(
-        "Participant approved."
+        "Participant approved in database:",
+        data
     );
 
 
     /*
-       Remove from local waiting room.
+       Remove participant from waiting room.
     */
 
     waitingParticipants =
@@ -2144,59 +2164,59 @@ async function allowParticipant(
 
 
     /*
-       We'll get the participant's full record
-       through the database below.
+       Add participant to administrator's
+       active participant list.
     */
 
-    const {
-        data
-    } =
-    await supabaseClient
-        .from(
-            "conference_participants"
-        )
-        .select("*")
-        .eq(
-            "id",
-            id
-        )
-        .single();
+    const participant = {
+
+        id:
+            data.id,
+
+        name:
+            data.participant_name,
+
+        cameraOn:
+            data.camera_on,
+
+        micOn:
+            data.mic_on,
+
+        micLocked:
+            data.mic_locked
+
+    };
 
 
-    if(data){
+    /*
+       Prevent duplicate participant entries.
+    */
 
-        const participant = {
+    const alreadyActive =
+        participants.some(
+            p => p.id === participant.id
+        );
 
-            id:
-                data.id,
 
-            name:
-                data.participant_name,
-
-            cameraOn:
-                data.camera_on,
-
-            micOn:
-                data.mic_on,
-
-            micLocked:
-                data.mic_locked
-
-        };
-
+    if(!alreadyActive){
 
         participants.push(
             participant
         );
 
-
-        renderParticipants();
-
-        assignParticipantToTile(
-            participant
-        );
-
     }
+
+
+    renderParticipants();
+
+
+    /*
+       Put participant into a video tile.
+    */
+
+    assignParticipantToTile(
+        participant
+    );
 
 }
 
@@ -2742,21 +2762,23 @@ function allowParticipant(id){
    DENY PARTICIPANT
 ========================================================= */
 
-async function denyParticipant(
-    id
-){
+async function denyParticipant(id){
+
+    console.log(
+        "Denying participant:",
+        id
+    );
+
 
     const {
+        data,
         error
     } =
     await supabaseClient
-        .from(
-            "conference_participants"
-        )
+        .from("conference_participants")
         .update({
 
-            status:
-                "denied",
+            status: "denied",
 
             updated_at:
                 new Date().toISOString()
@@ -2765,23 +2787,32 @@ async function denyParticipant(
         .eq(
             "id",
             id
-        );
+        )
+        .select()
+        .single();
 
 
     if(error){
 
         console.error(
-            "Deny error:",
+            "DENY PARTICIPANT ERROR:",
             error
         );
 
         alert(
-            "Unable to deny participant."
+            "Unable to deny participant.\n\n" +
+            error.message
         );
 
         return;
 
     }
+
+
+    console.log(
+        "Participant denied in database:",
+        data
+    );
 
 
     waitingParticipants =
