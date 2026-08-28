@@ -3926,22 +3926,18 @@ leaveButton.addEventListener(
         /*
          * DELETE participant record from Supabase.
          */
-        const {
-            data,
-            error
-        } =
-        await supabaseClient
-            .from(
-                "conference_participants"
-            )
-            .delete()
-            .eq(
-                "id",
-                participantId
-            )
-            .select("id")
-            .single();
-
+       const {
+    error
+} =
+await supabaseClient
+    .from(
+        "conference_participants"
+    )
+    .delete()
+    .eq(
+        "id",
+        participantId
+    );
 
         /*
          * Check for database error.
@@ -3964,9 +3960,9 @@ leaveButton.addEventListener(
 
 
         console.log(
-            "LEAVE DELETE SUCCESS:",
-            data
-        );
+    "LEAVE DELETE SUCCESS:",
+    participantId
+);
 
 
         /*
