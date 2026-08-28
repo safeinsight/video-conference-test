@@ -1377,10 +1377,46 @@ input {
 
 </aside>
 
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+    "https://ohrkwtcsprzvgkqidcei.supabase.co/rest/v1/";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_RD9pOKKYBSJU-7jjNNFfBg_VJcyWNeu";
+
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+/* =========================================================
+   CONFERENCE ROOM
+========================================================= */
+
+const urlParams =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const ROOM_ID =
+    urlParams.get("room") || "DEMO";
+
+
+console.log(
+    "Conference Room:",
+    ROOM_ID
+);
+    
 /* =========================================================
    APPLICATION STATE
 ========================================================= */
@@ -1559,6 +1595,7 @@ knockButton.addEventListener(
         const name =
             nameInput.value.trim();
 
+
         if(!name){
 
             alert(
@@ -1572,12 +1609,15 @@ knockButton.addEventListener(
         }
 
 
-        /*
-           Ask browser for camera and microphone
-           permission.
+        knockButton.disabled =
+            true;
 
-           This gives us the actual local media
-           stream for the eventual WebRTC connection.
+        knockButton.textContent =
+            "Knocking...";
+
+
+        /*
+           Ask for camera and microphone permission.
         */
 
         try{
@@ -1595,51 +1635,570 @@ knockButton.addEventListener(
                 error
             );
 
-            /*
-               We allow the user to continue even if
-               camera/mic permission was denied.
-            */
+        }
+
+
+        /*
+           Create participant record.
+        */
+
+        const {
+            data,
+            error
+        } =
+        await supabaseClient
+            .from(
+                "conference_participants"
+            )
+            .insert({
+
+                room_id:
+                    ROOM_ID,
+
+                participant_name:
+                    name,
+
+                role:
+                    "participant",
+
+                status:
+                    "waiting",
+
+                camera_on:
+                    true,
+
+                mic_on:
+                    true,
+
+                mic_locked:
+                    false
+
+            })
+            .select()
+            .single();
+
+
+        if(error){
+
+            console.error(
+                "Knock error:",
+                error
+            );
+
+            alert(
+                "Unable to contact the conference room."
+            );
+
+            knockButton.disabled =
+                false;
+
+            knockButton.textContent =
+                "🔔 Knock to Enter";
+
+            return;
 
         }
 
 
-        waitingName.textContent =
-            name;
-
-
         /*
-           Hide name-entry screen.
+           Save our participant ID.
+
+           We will need this later for WebRTC.
         */
 
-        joinScreen.classList.add("hidden");
+        window.myParticipantId =
+            data.id;
+
+
+        console.log(
+            "Knock successful:",
+            data
+        );
 
 
         /*
            Show waiting screen.
         */
 
+        waitingName.textContent =
+            name;
+
+        joinScreen.classList.add(
+            "hidden"
+        );
+
         waitingScreen.style.display =
             "flex";
 
 
-        /*
-           In the real system this event will be
-           sent to the server.
+        connectionStatus.textContent =
+            "● Waiting for approval";
 
-           For this prototype we also add the
-           person to the local administrator
-           waiting room if this page is running
-           in administrator mode.
+        connectionStatus.style.color =
+            "#ffd400";
+
+
+        /*
+           Listen for administrator decision.
         */
 
-        console.log(
-            "KNOCK:",
-            name
+        subscribeToMyParticipant(
+            data.id
         );
 
     }
 );
 
+/* =========================================================
+   PARTICIPANT STATUS LISTENER
+========================================================= */
+
+function subscribeToMyParticipant(
+    participantId
+){
+
+    supabaseClient
+        .channel(
+            "participant-" + participantId
+        )
+        .on(
+
+            "postgres_changes",
+
+            {
+                event: "UPDATE",
+
+                schema: "public",
+
+                table:
+                    "conference_participants",
+
+                filter:
+                    "id=eq." + participantId
+
+            },
+
+            function(payload){
+
+                console.log(
+                    "Participant update:",
+                    payload.new
+                );
+
+
+                const participant =
+                    payload.new;
+
+
+                /*
+                   Administrator approved entry.
+                */
+
+                if(
+                    participant.status ===
+                    "approved"
+                ){
+
+                    enterConference(
+                        participant
+                    );
+
+                }
+
+
+                /*
+                   Administrator denied entry.
+                */
+
+                if(
+                    participant.status ===
+                    "denied"
+                ){
+
+                    showDeniedScreen();
+
+                }
+
+            }
+
+        )
+        .subscribe(
+
+            function(status){
+
+                console.log(
+                    "Participant subscription:",
+                    status
+                );
+
+            }
+
+        );
+
+}
+
+/* =========================================================
+   ENTER CONFERENCE
+========================================================= */
+
+function enterConference(
+    participant
+){
+
+    console.log(
+        "ENTRY APPROVED:",
+        participant
+    );
+
+
+    waitingScreen.style.display =
+        "none";
+
+
+    connectionStatus.textContent =
+        "● Connected";
+
+    connectionStatus.style.color =
+        "#62ff62";
+
+
+    /*
+       At this point Phase 2 has completed
+       the participant handshake.
+
+       Phase 3 will attach the actual remote
+       video stream to the participant tile.
+    */
+
+
+    alert(
+        "You have been admitted to the conference."
+    );
+
+}
+
+/* =========================================================
+   DENIED
+========================================================= */
+
+function showDeniedScreen(){
+
+    waitingScreen.style.display =
+        "none";
+
+
+    joinScreen.classList.remove(
+        "hidden"
+    );
+
+
+    nameInput.value =
+        "";
+
+
+    knockButton.disabled =
+        false;
+
+
+    knockButton.textContent =
+        "🔔 Knock to Enter";
+
+
+    connectionStatus.textContent =
+        "● Entry denied";
+
+    connectionStatus.style.color =
+        "#ff4444";
+
+
+    alert(
+        "The administrator did not allow entry to the conference."
+    );
+
+}
+
+/* =========================================================
+   ADMIN REALTIME LISTENER
+========================================================= */
+
+function subscribeToConference(){
+
+    if(!isAdministrator){
+
+        return;
+
+    }
+
+
+    console.log(
+        "Listening for conference activity..."
+    );
+
+
+    supabaseClient
+        .channel(
+            "admin-room-" + ROOM_ID
+        )
+        .on(
+
+            "postgres_changes",
+
+            {
+                event: "INSERT",
+
+                schema: "public",
+
+                table:
+                    "conference_participants",
+
+                filter:
+                    "room_id=eq." + ROOM_ID
+
+            },
+
+            function(payload){
+
+                console.log(
+                    "NEW PARTICIPANT:",
+                    payload.new
+                );
+
+
+                const participant =
+                    payload.new;
+
+
+                if(
+                    participant.status ===
+                    "waiting"
+                ){
+
+                    addWaitingParticipantFromDatabase(
+                        participant
+                    );
+
+                }
+
+            }
+
+        )
+        .on(
+
+            "postgres_changes",
+
+            {
+                event: "UPDATE",
+
+                schema: "public",
+
+                table:
+                    "conference_participants",
+
+                filter:
+                    "room_id=eq." + ROOM_ID
+
+            },
+
+            function(payload){
+
+                console.log(
+                    "PARTICIPANT UPDATE:",
+                    payload.new
+                );
+
+
+                updateAdministratorParticipant(
+                    payload.new
+                );
+
+            }
+
+        )
+        .subscribe(
+
+            function(status){
+
+                console.log(
+                    "ADMIN SUBSCRIPTION:",
+                    status
+                );
+
+            }
+
+        );
+
+}
+
+/* =========================================================
+   DATABASE WAITING PARTICIPANT
+========================================================= */
+
+function addWaitingParticipantFromDatabase(
+    participant
+){
+
+    /*
+       Prevent duplicates.
+    */
+
+    const alreadyExists =
+        waitingParticipants.some(
+            p =>
+                p.id === participant.id
+        );
+
+
+    if(alreadyExists){
+
+        return;
+
+    }
+
+
+    waitingParticipants.push({
+
+        id:
+            participant.id,
+
+        name:
+            participant.participant_name,
+
+        databaseRecord:
+            participant
+
+    });
+
+
+    renderWaitingParticipants();
+
+}
+
+/* =========================================================
+   ALLOW PARTICIPANT
+========================================================= */
+
+async function allowParticipant(
+    id
+){
+
+    console.log(
+        "Allowing participant:",
+        id
+    );
+
+
+    const {
+        error
+    } =
+    await supabaseClient
+        .from(
+            "conference_participants"
+        )
+        .update({
+
+            status:
+                "approved",
+
+            updated_at:
+                new Date().toISOString()
+
+        })
+        .eq(
+            "id",
+            id
+        );
+
+
+    if(error){
+
+        console.error(
+            "Allow error:",
+            error
+        );
+
+        alert(
+            "Unable to allow participant."
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        "Participant approved."
+    );
+
+
+    /*
+       Remove from local waiting room.
+    */
+
+    waitingParticipants =
+        waitingParticipants.filter(
+            p => p.id !== id
+        );
+
+
+    renderWaitingParticipants();
+
+
+    /*
+       We'll get the participant's full record
+       through the database below.
+    */
+
+    const {
+        data
+    } =
+    await supabaseClient
+        .from(
+            "conference_participants"
+        )
+        .select("*")
+        .eq(
+            "id",
+            id
+        )
+        .single();
+
+
+    if(data){
+
+        const participant = {
+
+            id:
+                data.id,
+
+            name:
+                data.participant_name,
+
+            cameraOn:
+                data.camera_on,
+
+            micOn:
+                data.mic_on,
+
+            micLocked:
+                data.mic_locked
+
+        };
+
+
+        participants.push(
+            participant
+        );
+
+
+        renderParticipants();
+
+        assignParticipantToTile(
+            participant
+        );
+
+    }
+
+}
 
 /* =========================================================
    ADMINISTRATOR CAMERA
@@ -2183,17 +2742,57 @@ function allowParticipant(id){
    DENY PARTICIPANT
 ========================================================= */
 
-function denyParticipant(id){
+async function denyParticipant(
+    id
+){
+
+    const {
+        error
+    } =
+    await supabaseClient
+        .from(
+            "conference_participants"
+        )
+        .update({
+
+            status:
+                "denied",
+
+            updated_at:
+                new Date().toISOString()
+
+        })
+        .eq(
+            "id",
+            id
+        );
+
+
+    if(error){
+
+        console.error(
+            "Deny error:",
+            error
+        );
+
+        alert(
+            "Unable to deny participant."
+        );
+
+        return;
+
+    }
+
 
     waitingParticipants =
         waitingParticipants.filter(
             p => p.id !== id
         );
 
+
     renderWaitingParticipants();
 
 }
-
 
 /* =========================================================
    RENDER PARTICIPANTS
@@ -2908,21 +3507,6 @@ function escapeHtml(
 
 if(isAdministrator){
 
-    setTimeout(
-        function(){
-
-            addWaitingParticipant(
-                "John Smith"
-            );
-
-            addWaitingParticipant(
-                "Jane Doe"
-            );
-
-        },
-        800
-    );
-
 }
 
 
@@ -2931,6 +3515,13 @@ if(isAdministrator){
 ========================================================= */
 
 initializeApplication();
+
+
+if(isAdministrator){
+
+    subscribeToConference();
+
+}
 
 </script>
 
