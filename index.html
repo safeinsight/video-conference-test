@@ -1753,113 +1753,121 @@ knockButton.addEventListener(
    PARTICIPANT STATUS LISTENER
 ========================================================= */
 
-function subscribeToMyParticipant(
-    participantId
-){
+function subscribeToMyParticipant(participantId){
 
     console.log(
         "Starting participant subscription:",
         participantId
     );
 
+    const channel =
+        supabaseClient
+            .channel(
+                "participant-" + participantId
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "conference_participants",
+                    filter:
+                        "id=eq." + participantId
+                },
+                function(payload){
 
-    supabaseClient
-        .channel(
-            "participant-" + participantId
-        )
-        .on(
-            "postgres_changes",
-            {
-                event: "UPDATE",
-                schema: "public",
-                table: "conference_participants",
-                filter:
-                    "id=eq." + participantId
-            },
-            function(payload){
+                    console.log(
+                        "================================"
+                    );
 
-                console.log(
-                    "================================"
-                );
+                    console.log(
+                        "PARTICIPANT UPDATE RECEIVED"
+                    );
 
-                console.log(
-                    "PARTICIPANT UPDATE RECEIVED"
-                );
+                    console.log(
+                        "OLD:",
+                        payload.old
+                    );
 
-                console.log(
-                    "OLD:",
-                    payload.old
-                );
+                    console.log(
+                        "NEW:",
+                        payload.new
+                    );
 
-                console.log(
-                    "NEW:",
-                    payload.new
-                );
+                    console.log(
+                        "================================"
+                    );
 
-                console.log(
-                    "================================"
-                );
+                    const participant =
+                        payload.new;
 
+                    if(
+                        participant.status ===
+                        "approved"
+                    ){
 
-                const participant =
-                    payload.new;
+                        console.log(
+                            "ENTRY APPROVED"
+                        );
 
+                        enterConference(
+                            participant
+                        );
 
-if(
-    participant.status ===
-    "approved"
-){
+                        /*
+                         * Start the actual WebRTC
+                         * connection here.
+                         *
+                         * We will add the WebRTC
+                         * function next.
+                         */
+                        startParticipantWebRTC(
+                            participant
+                        );
 
-    console.log(
-        "ENTRY APPROVED"
-    );
+                    }
 
-    enterConference(
-        participant
-    );
+                    if(
+                        participant.status ===
+                        "denied"
+                    ){
 
-}
+                        console.log(
+                            "ENTRY DENIED"
+                        );
 
+                        showDeniedScreen();
 
-if(
-    participant.status ===
-    "denied"
-){
+                    }
 
-    console.log(
-        "ENTRY DENIED"
-    );
+                    if(
+                        participant.status ===
+                        "removed"
+                    ){
 
-    showDeniedScreen();
+                        console.log(
+                            "REMOVED BY ADMINISTRATOR"
+                        );
 
-}
+                        showRemovedScreen();
 
+                    }
 
-if(
-    participant.status ===
-    "removed"
-){
+                }
+            )
+            .subscribe(
+                function(status){
 
-    console.log(
-        "REMOVED BY ADMINISTRATOR"
-    );
+                    console.log(
+                        "Participant subscription status:",
+                        status
+                    );
 
-    showRemovedScreen();
+                }
+            );
 
-}
-
-            }
-        )
-        .subscribe(
-            function(status){
-
-                console.log(
-                    "Participant subscription:",
-                    status
-                );
-
-            }
-        );
+    window.participantChannel =
+        channel;
 
 }
 
@@ -1925,6 +1933,95 @@ function showRemovedScreen(){
 }
 
 /* =========================================================
+   ATTACH PARTICIPANT VIDEO
+========================================================= */
+    
+function attachLocalParticipantVideo(){
+
+    if(!localStream){
+
+        console.warn(
+            "No local participant stream available."
+        );
+
+        return;
+
+    }
+
+    /*
+     * Find the first participant tile.
+     */
+    const tile =
+        document.getElementById("tile1");
+
+    if(!tile){
+
+        console.warn(
+            "Participant video tile not found."
+        );
+
+        return;
+
+    }
+
+    /*
+     * Clear the existing placeholder.
+     */
+    tile.classList.remove(
+        "empty"
+    );
+
+    tile.innerHTML = "";
+
+    /*
+     * Create local video element.
+     */
+    const video =
+        document.createElement(
+            "video"
+        );
+
+    video.autoplay =
+        true;
+
+    video.playsInline =
+        true;
+
+    /*
+     * Local video should be muted
+     * to prevent audio feedback.
+     */
+    video.muted =
+        true;
+
+    video.srcObject =
+        localStream;
+
+    tile.appendChild(
+        video
+    );
+
+    /*
+     * Participant name.
+     */
+    const label =
+        document.createElement(
+            "div"
+        );
+
+    label.className =
+        "tileLabel";
+
+    label.textContent =
+        "You";
+
+    tile.appendChild(
+        label
+    );
+
+}
+
+/* =========================================================
    ENTER CONFERENCE
 ========================================================= */
 
@@ -1947,11 +2044,9 @@ function enterConference(participant){
         "================================"
     );
 
-
     /*
-       Hide waiting screen.
-    */
-
+     * Hide waiting screen.
+     */
     if(waitingScreen){
 
         waitingScreen.style.display =
@@ -1959,11 +2054,9 @@ function enterConference(participant){
 
     }
 
-
     /*
-       Show conference interface.
-    */
-
+     * Show conference interface.
+     */
     if(conferenceArea){
 
         conferenceArea.style.display =
@@ -1971,24 +2064,28 @@ function enterConference(participant){
 
     }
 
+    /*
+     * Make sure our local participant
+     * camera/microphone is attached to
+     * a local video element.
+     */
+    attachLocalParticipantVideo();
 
     /*
-       Update connection indicator.
-    */
-
+     * Update connection indicator.
+     */
     if(connectionStatus){
 
         connectionStatus.textContent =
-            "● Connected";
+            "● Connecting...";
 
         connectionStatus.style.color =
-            "#62ff62";
+            "#ffd400";
 
     }
 
-
     console.log(
-        "Participant entered conference."
+        "Participant admitted."
     );
 
 }
@@ -2991,57 +3088,6 @@ div.innerHTML = `
 }
 
 
-/* =========================================================
-   ALLOW PARTICIPANT
-========================================================= */
-
-function allowParticipant(id){
-
-    const index =
-        waitingParticipants.findIndex(
-            p => p.id === id
-        );
-
-    if(index === -1){
-
-        return;
-
-    }
-
-    const participant =
-        waitingParticipants[index];
-
-
-    waitingParticipants.splice(
-        index,
-        1
-    );
-
-
-    participant.cameraOn =
-        true;
-
-    participant.micOn =
-        true;
-
-    participant.micLocked =
-        false;
-
-
-    participants.push(
-        participant
-    );
-
-
-    renderWaitingParticipants();
-
-    renderParticipants();
-
-    assignParticipantToTile(
-        participant
-    );
-
-}
 
 
 /* =========================================================
