@@ -2410,78 +2410,108 @@ function updateAdministratorParticipant(participant){
        Remove them from the active list.
     */
 
-    if(
+if(
     participant.status === "denied" ||
     participant.status === "removed" ||
     participant.status === "left"
 ){
 
-        if(index !== -1){
+    if(index !== -1){
 
-            participants.splice(
-                index,
-                1
-            );
-
-        }
-
-
-                renderParticipants();
-
-
-        /*
-         * If participant left voluntarily,
-         * permanently delete their database row.
-         */
-
-        if(
-            participant.status === "left"
-        ){
-
-            console.log(
-                "Participant left voluntarily. Deleting database record:",
-                participant.id
-            );
-
-
-            supabaseClient
-                .from(
-                    "conference_participants"
-                )
-                .delete()
-                .eq(
-                    "id",
-                    participant.id
-                )
-                .then(
-                    function(result){
-
-                        if(result.error){
-
-                            console.error(
-                                "DELETE LEFT PARTICIPANT ERROR:",
-                                result.error
-                            );
-
-                            return;
-
-                        }
-
-
-                        console.log(
-                            "LEFT PARTICIPANT DELETED FROM SUPABASE:",
-                            participant.id
-                        );
-
-                    }
-                );
-
-        }
-
-
-        return;
+        participants.splice(
+            index,
+            1
+        );
 
     }
+
+
+    /*
+     * Clear the participant's video tile.
+     */
+    document
+        .querySelectorAll(
+            ".videoTile[data-participant-id]"
+        )
+        .forEach(
+            tile => {
+
+                if(
+                    String(
+                        tile.dataset.participantId
+                    ) === String(
+                        participant.id
+                    )
+                ){
+
+                    clearParticipantTile(
+                        tile
+                    );
+
+                }
+
+            }
+        );
+
+
+    /*
+     * Refresh administrator participant panel.
+     */
+    renderParticipants();
+
+
+    /*
+     * If participant left voluntarily,
+     * permanently delete their database row.
+     */
+    if(
+        participant.status === "left"
+    ){
+
+        console.log(
+            "Participant left voluntarily. Deleting database record:",
+            participant.id
+        );
+
+
+        supabaseClient
+            .from(
+                "conference_participants"
+            )
+            .delete()
+            .eq(
+                "id",
+                participant.id
+            )
+            .then(
+                function(result){
+
+                    if(result.error){
+
+                        console.error(
+                            "DELETE LEFT PARTICIPANT ERROR:",
+                            result.error
+                        );
+
+                        return;
+
+                    }
+
+
+                    console.log(
+                        "LEFT PARTICIPANT DELETED FROM SUPABASE:",
+                        participant.id
+                    );
+
+                }
+            );
+
+    }
+
+
+    return;
+
+}
 
 
     /*
