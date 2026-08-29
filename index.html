@@ -1219,30 +1219,34 @@ input {
 
         <button
             class="toolbarButton"
-            id="micButton"
+            id="adminPanelButton"
         >
-            🎤 Mic
+            Participants
         </button>
 
-        <button
-            class="toolbarButton"
-            id="cameraButton"
-        >
-            📹 Camera
-        </button>
-
-        <button
+            <button
             class="toolbarButton"
             id="adminCameraButton"
         >
             Administrator Video
         </button>
-
+        
+    <button
+    type="button"
+    class="toolbarButton redButton"
+    onclick="window.open(
+        'https://safeinsight.acadio.com/auth/signin?go=/dashboard',
+        '_blank'
+    )"
+    >
+    Training Login
+    </button>
+        
         <button
             class="toolbarButton"
-            id="adminPanelButton"
+            id="micButton"
         >
-            Participants
+            🎤 Mic
         </button>
 
         <button
@@ -1251,17 +1255,13 @@ input {
         >
             Leave
         </button>
-
-    <button
-    type="button"
-    class="toolbarButton redButton"
-    onclick="window.open(
-        'https://safeinsight.acadio.com/auth/signin?go=/dashboard',
-        '_blank'
-    )"
->
-    Training Login
-</button>
+        
+        <button
+            class="toolbarButton"
+            id="cameraButton"
+        >
+            📹 Camera
+        </button>
 
 <button
     type="button"
