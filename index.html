@@ -1542,6 +1542,13 @@ const cameraButton =
 const leaveButton =
     document.getElementById("leaveButton");
 
+const trainingLoginButton =
+    document.getElementById("trainingLoginButton");
+
+const scheduleConferenceButton =
+    document.getElementById("scheduleConferenceButton");
+    
+
 const adminVideo =
     document.getElementById("adminVideo");
 
@@ -1601,6 +1608,9 @@ function initializeAdministrator(){
 
     adminCameraButton.style.display = "block";
 
+    trainingLoginButton.style.display = "none";
+    scheduleConferenceButton.style.display = "none";
+
     connectionStatus.textContent =
         "● Administrator";
 
@@ -1619,6 +1629,9 @@ function initializeParticipant(){
     adminPanelButton.style.display = "none";
 
     adminCameraButton.style.display = "none";
+
+    trainingLoginButton.style.display = "block";
+    scheduleConferenceButton.style.display = "block";
 
     /*
        Participant must enter name.
