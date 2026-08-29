@@ -2411,10 +2411,10 @@ function updateAdministratorParticipant(participant){
     */
 
     if(
-        participant.status === "denied" ||
-        participant.status === "removed"
-        participant.status === "left"
-    ){
+    participant.status === "denied" ||
+    participant.status === "removed" ||
+    participant.status === "left"
+){
 
         if(index !== -1){
 
@@ -2426,7 +2426,58 @@ function updateAdministratorParticipant(participant){
         }
 
 
-        renderParticipants();
+                renderParticipants();
+
+
+        /*
+         * If participant left voluntarily,
+         * permanently delete their database row.
+         */
+
+        if(
+            participant.status === "left"
+        ){
+
+            console.log(
+                "Participant left voluntarily. Deleting database record:",
+                participant.id
+            );
+
+
+            supabaseClient
+                .from(
+                    "conference_participants"
+                )
+                .delete()
+                .eq(
+                    "id",
+                    participant.id
+                )
+                .then(
+                    function(result){
+
+                        if(result.error){
+
+                            console.error(
+                                "DELETE LEFT PARTICIPANT ERROR:",
+                                result.error
+                            );
+
+                            return;
+
+                        }
+
+
+                        console.log(
+                            "LEFT PARTICIPANT DELETED FROM SUPABASE:",
+                            participant.id
+                        );
+
+                    }
+                );
+
+        }
+
 
         return;
 
