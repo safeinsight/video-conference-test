@@ -7555,17 +7555,11 @@ if(existingTile){
             );
 
 tile.addEventListener(
-    "click",
-    function(event){
-
-        if(event.detail !== 2){
-            return;
-        }
-
+    "dblclick",
+    function(){
         openParticipantMirror(
             participant.id
         );
-
     }
 );
 
@@ -7591,7 +7585,7 @@ tile.addEventListener(
 
 }
 
-async function openParticipantMirror(participantId){
+function openParticipantMirror(participantId){
 
     if(!isAdministrator){
         return;
@@ -7633,7 +7627,7 @@ async function openParticipantMirror(participantId){
      * Now tell the participant that the
      * administrator wants to view their screen.
      */
-    await sendWebRTCSignal({
+    sendWebRTCSignal({
 
         type:
             "screen-share-request",
