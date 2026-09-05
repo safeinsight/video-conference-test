@@ -1279,10 +1279,20 @@ input {
 ========================================================= */
 
 /* Desktop / landscape */
-@media (orientation:landscape), (min-width:901px) {
+@media (orientation:landscape) and (min-width:901px) {
 
     #participantView {
         flex-direction:row;
+    }
+
+    /* Expanded Training iframe */
+    #participantBrowserFrame {
+        position:fixed;
+        top:0;
+        right:0;
+        width:66vw;
+        height:100dvh;
+        z-index:300;
     }
 
 }
