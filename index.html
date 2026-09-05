@@ -11,7 +11,7 @@
 
 <link rel="icon" type="image/png" href="favicon.png">
     
-<title>Safe Insight Conference</title>
+<title>CCW Conference</title>
 
 <style>
 
@@ -135,7 +135,6 @@ input {
 .videoTile {
 
     position: relative;
-
     background: #111;
 
     overflow: hidden;
@@ -146,6 +145,11 @@ input {
 
     min-width: 0;
     min-height: 0;
+}
+
+.videoTile.chatAlert {
+    outline: 4px solid #ff0000;
+    outline-offset: -4px;
 }
 
 .videoTile video {
@@ -270,9 +274,12 @@ input {
 }
 
 .statusIcon.off {
-    color: #ff4b4b;
+    color: #777;
 }
 
+    .statusIcon.on {
+    color: #62ff62;
+}
 
 /* =========================================================
    ADMIN CONTROL OVERLAY
@@ -375,6 +382,28 @@ input {
     background: #147a14;
 }
 
+#adminCameraButton {
+    background: #777;
+    color: #fff;
+}
+
+#adminCameraButton.logoActive {
+    background: #147a14;
+    color: #fff;
+}
+
+#micButtonParticipant:not(.active),
+#cameraButtonParticipant:not(.active) {
+    background: #777;
+    color: #fff;
+}
+
+#micButtonParticipant.active,
+#cameraButtonParticipant.active {
+    background: #147a14;
+    color: #fff;
+}
+
 .toolbarButton.danger {
     background: #8b0000;
 }
@@ -387,6 +416,13 @@ input {
 .toolbarButton.redButton:hover {
     background: #555555 !important;
     color: #ffffff !important;
+}
+
+@media (max-width: 768px) {
+    .toolbarButton.redButton:hover {
+        background: #ff0000 !important;
+        color: #ffffff !important;
+    }
 }
 
 .toolbarButton.blueButton {
@@ -908,14 +944,10 @@ input {
 
 
     #adminPanel {
-
         top: 50px;
-        bottom: 58px;
-
+        bottom: 110px;
         width: 100%;
-
         border-left: none;
-
         border-top: 2px solid #444;
     }
 
@@ -964,11 +996,779 @@ input {
 
 
 /* =========================================================
+   DISTINCT ADMINISTRATOR / PARTICIPANT VIEWS
+========================================================= */
+
+#administratorView, #participantView { width:100%; height:100%; min-width:0; min-height:0; }
+#administratorView { display:block; }
+#participantView {
+    display:none;
+    gap:8px;
+    padding:8px;
+    background:#000;
+}
+
+#adminLmsLoginButton {
+    right:10px;
+    top:10px;
+}
+
+
+.participantPanel { position:relative; min-width:0; min-height:0; background:#151515; border:1px solid #333; border-radius:6px; overflow:hidden; display:flex; flex-direction:column; }
+#participantLeft {
+    width:50%;
+    height:100%;
+    min-width:0;
+    min-height:0;
+
+    display:flex;
+    flex-direction:column;
+
+    gap:8px;
+}
+
+#participantVideoPanel {
+    width:100%;
+    height:50%;
+    min-height:0;
+    position:relative;
+    overflow:hidden;
+}
+
+#participantVideoStage {
+    position:relative;
+    width:100%;
+    height:100%;
+    min-width:0;
+    min-height:0;
+}
+
+#participantLocalVideo {
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
+    width:58%;
+    height:78%;
+    min-height:0;
+    object-fit:contain;
+    background:#111;
+    z-index:1;
+}
+
+#participantVideoControls {
+    position:absolute;
+    inset:0;
+    z-index:5;
+    pointer-events:none;
+}
+
+#participantVideoControls .toolbarButton {
+    position:absolute;
+    min-width:96px;
+    padding:9px 10px;
+    font-size:13px;
+    pointer-events:auto;
+}
+
+#micButtonParticipant {
+    left:10px;
+    top:10px;
+}
+
+#cameraButtonParticipant {
+    left:10px;
+    bottom:10px;
+}
+
+#scheduleButtonParticipant {
+    right:10px;
+    top:10px;
+}
+
+#leaveButtonParticipant {
+    right:10px;
+    bottom:10px;
+}
+
+#participantChatPanel {
+    width:100%;
+    height:50%;
+    min-height:0;
+
+    display:flex;
+    flex-direction:column;
+
+    box-sizing:border-box;
+}
+
+
+.participantPanelTitle { flex:0 0 auto; padding:9px 12px; background:#000; border-bottom:1px solid #333; font-weight:bold; }
+#participantVideoPlaceholder { position:absolute; inset:0; display:none; align-items:center; justify-content:center; color:#aaa; background:#111; z-index:2; }
+
+/* =========================================================
+   PARTICIPANT BROWSER
+========================================================= */
+
+#participantBrowser {
+    width:50%;
+    height:100%;
+    min-width:0;
+    min-height:0;
+
+    display:flex;
+    flex-direction:column;
+
+    background:#151515;
+
+    border:1px solid #333;
+    border-radius:6px;
+
+    overflow:hidden;
+}
+
+
+
+
+
+/* =========================================================
+   BROWSER FRAME
+========================================================= */
+
+#browserFrameContainer {
+    flex:1;
+
+    min-width:0;
+    min-height:0;
+
+    background:#fff;
+    position:relative;
+}
+
+#participantBrowserFrame {
+    width:100%;
+    height:100%;
+
+    border:0;
+
+    display:block;
+
+    background:#fff;
+}
+
+    
+.toolbarView { display:none; width:100%; align-items:center; justify-content:center; gap:10px; }
+#administratorToolbar { display:none; }
+
+#adminChatPanel { position:fixed; top:1px; left:0; bottom:64px; width:500px; background:#181818; border-left:2px solid #444; z-index:250; display:none; flex-direction:column; }
+.chatPanelHeader { display:flex; justify-content:space-between; align-items:center; padding:14px; border-bottom:1px solid #444; font-size:18px; }
+.chatCloseButton { border:0; background:transparent; color:#fff; cursor:pointer; font-size:18px; }
+.adminChatRecipients { padding:10px; border-bottom:1px solid #444; max-height:180px; overflow-y:auto; }
+.chatRecipientsTitle { font-weight:bold; margin-bottom:8px; }
+.chatRecipientBranch {
+    position:relative;
+    margin:0 0 8px 8px;
+    padding-left:18px;
+}
+
+.chatRecipientBranch::before {
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:8px;
+    width:1px;
+    background:#555;
+}
+
+.chatRecipientBranch::after {
+    content:"";
+    position:absolute;
+    left:0;
+    top:17px;
+    width:12px;
+    height:1px;
+    background:#555;
+}
+
+.chatRecipient {
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:5px 7px;
+    border-radius:5px;
+    background:#252525;
+    cursor:pointer;
+}
+
+.chatRecipient:hover { background:#303030; }
+.chatRecipient input { width:16px; height:16px; flex:0 0 auto; }
+
+.chatRecipientName {
+    flex:1;
+    font-weight:bold;
+}
+
+.chatRecipient.selected {
+    background: #147a14;
+    color: #fff;
+}
+
+.chatRecipient.selected .chatRecipientName {
+    font-weight: bold;
+}
+
+.chatThreadBadge {
+    min-width:22px;
+    height:20px;
+    padding:2px 6px;
+    border-radius:10px;
+    background:#444;
+    color:#ccc;
+    font-size:10px;
+    text-align:center;
+}
+
+.chatThreadPreview {
+    display:block;
+    margin:4px 0 0 25px;
+    color:#999;
+    font-size:11px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.chatThread {
+    display:none;
+    margin:5px 0 0 25px;
+    padding:7px;
+    max-height:150px;
+    overflow-y:auto;
+    background:#111;
+    border-left:2px solid #444;
+    border-radius:0 5px 5px 0;
+}
+
+.chatThread.open { display:block; }
+
+.chatThreadMessage {
+    padding:5px 6px;
+    margin-bottom:5px;
+    background:#292929;
+    border-radius:4px;
+    font-size:11px;
+    word-break:break-word;
+}
+
+.chatThreadMessage.mine { background:#075e54; }
+.chatThreadMessageMeta { color:#aaa; font-size:9px; margin-bottom:2px; }
+.chatThreadEmpty { color:#777; font-size:10px; font-style:italic; }
+
+.chatMessages { flex:1; min-height:0; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:7px; }
+.chatMessage { max-width:88%; padding:8px 10px; border-radius:7px; background:#292929; word-break:break-word; }
+.chatMessage.mine { align-self:flex-end; background:#075e54; }
+.chatMessageMeta { font-size:10px; color:#aaa; margin-bottom:3px; }
+.chatComposer { display:flex; gap:6px; padding:9px; border-top:1px solid #444; background:#101010; }
+.chatComposer input { flex:1; min-width:0; padding:9px; border:1px solid #555; border-radius:5px; background:#222; color:#fff; }
+.chatSendButton { border:0; border-radius:5px; padding:9px 13px; background:#168016; color:#fff; font-weight:bold; cursor:pointer; }
+
+/* =========================================================
+   PARTICIPANT RESPONSIVE LAYOUT
+========================================================= */
+
+/* Desktop / landscape */
+@media (orientation:landscape), (min-width:901px) {
+
+    #participantView {
+        flex-direction:row;
+    }
+
+}
+
+
+/* Portrait mobile */
+@media (orientation:portrait) and (max-width:900px) {
+
+    #participantVideoPanel {
+        height:60%;
+    }
+
+    #participantChatPanel {
+        height:40%;
+    }
+
+    #participantLocalVideo {
+        width:52%;
+        height:76%;
+    }
+
+    #participantVideoControls .toolbarButton {
+        min-width:78px;
+        padding:8px 6px;
+        font-size:11px;
+    }
+
+    #participantView {
+        display:flex;
+        flex-direction:column;
+
+        width:100%;
+        height:100%;
+
+        padding:0;
+        gap:0;
+
+        box-sizing:border-box;
+    }
+
+    #participantLeft {
+        width:100%;
+        height:40%;
+
+        min-height:0;
+
+        display:flex;
+        flex-direction:column;
+
+        gap:0;
+
+        box-sizing:border-box;
+    }
+
+    #participantVideoPanel {
+        width:100%;
+        height:60%;
+
+        min-height:0;
+
+        box-sizing:border-box;
+    }
+
+    #participantChatPanel {
+        width:100%;
+        height:40%;
+
+        min-height:0;
+
+        display:flex;
+        flex-direction:column;
+
+        box-sizing:border-box;
+    }
+
+    #participantBrowser {
+        position:static;
+
+        width:100%;
+        height:60%;
+
+        min-height:0;
+
+        box-sizing:border-box;
+
+        border-radius:0;
+    }
+
+}
+
+
+@media (max-width:600px) {
+
+    #administratorToolbar {
+        display:grid !important;
+        grid-template-columns:repeat(3, 1fr);
+        grid-template-rows:repeat(2, 1fr);
+        gap:4px;
+        width:100%;
+        height:100%;
+    }
+
+    #administratorToolbar .toolbarButton {
+        width:100%;
+        min-width:0;
+        margin:0;
+        padding:8px 4px;
+        font-size:12px;
+    }
+
+    #toolbar {
+    min-height:110px;
+    height:110px;
+    padding:6px 8px;
+}
+
+    #adminChatPanel {
+        top:50px;
+        bottom:110px;
+        width:100%;
+    }
+
+    #adminChatButton {
+        grid-column:1;
+        grid-row:1;
+    }
+
+    #adminLmsLoginButton {
+        grid-column:2;
+        grid-row:1;
+    }
+
+    #adminPanelButton {
+        grid-column:3;
+        grid-row:1;
+    }
+
+    #adminCameraButton {
+        grid-column:1;
+        grid-row:2;
+    }
+
+    #leaveButton {
+        grid-column:2;
+        grid-row:2;
+    }
+
+    #micButton {
+        grid-column:3;
+        grid-row:2;
+    }
+
+}
+
+    #adminChatButton {
+        grid-column:1;
+        grid-row:1;
+    }
+
+    #adminLmsLoginButton {
+        grid-column:2;
+        grid-row:1;
+    }
+
+    #adminPanelButton {
+        grid-column:3;
+        grid-row:1;
+    }
+
+    #adminCameraButton {
+        grid-column:1;
+        grid-row:2;
+    }
+
+    #leaveButton {
+        grid-column:2;
+        grid-row:2;
+    }
+
+    #micButton {
+        grid-column:3;
+        grid-row:2;
+    }
+
+/* =========================================================
+   DESKTOP ADMINISTRATOR LAYOUT
+========================================================= */
+
+@media (min-width: 901px) {
+
+    /*
+     * Video area occupies approximately 70%
+     * of the available screen width.
+     */
+    #administratorView {
+        width: 70%;
+        height: 100%;
+    }
+
+    /*
+     * Video grid fills the administrator
+     * video area.
+     */
+    #videoGrid {
+        width: 100%;
+        height: 100%;
+    }
+
+    /*
+     * Participant control panel occupies
+     * the remaining 30%.
+     */
+    #adminPanel {
+        width: 30%;
+        top: 72px;
+        bottom: 64px;
+        display: flex;
+    }
+
+}
+
+
+/* =========================================================
+   CUSTOM ALERT / CONFIRM MODALS
+========================================================= */
+
+#customAlertOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0,0,0,.72);
+}
+
+#customAlertOverlay.show {
+    display: flex;
+}
+
+.customAlertBox {
+    width: min(92vw, 760px);
+    min-height: 360px;
+    padding: 34px 42px 30px;
+    background: #e6e6e6;
+    color: #000;
+    border: 6px solid #ed1c24;
+    border-radius: 64px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.55);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+}
+
+.customAlertLogo {
+    width: min(300px, 55%);
+    max-height: 100px;
+    object-fit: contain;
+    margin: 0 auto 18px;
+}
+
+#customAlertMessage {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 12px 24px;
+    font-size: clamp(22px, 3vw, 42px);
+    line-height: 1.2;
+    font-weight: bold;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.customAlertButtons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+}
+
+.customAlertButton {
+    min-width: 120px;
+    padding: 11px 24px;
+    border: 0;
+    border-radius: 7px;
+    background: #000;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.customAlertButton:hover {
+    background: #555;
+}
+
+.customAlertButton.confirm {
+    background: #168016;
+}
+
+.customAlertButton.cancel {
+    background: #8b0000;
+}
+
+@media (max-width: 600px) {
+    #customAlertOverlay {
+        padding: 14px;
+    }
+
+    .customAlertBox {
+        min-height: 280px;
+        padding: 25px 20px 22px;
+        border-width: 5px;
+        border-radius: 42px;
+    }
+
+    .customAlertLogo {
+        width: min(220px, 70%);
+        max-height: 72px;
+        margin-bottom: 8px;
+    }
+
+    #customAlertMessage {
+        padding: 8px 4px 18px;
+        font-size: clamp(19px, 6vw, 30px);
+    }
+
+    .customAlertButtons {
+        gap: 8px;
+    }
+
+    .customAlertButton {
+        min-width: 100px;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+}
+
+/* =========================================================
    HIDDEN
 ========================================================= */
 
 .hidden {
     display: none !important;
+}
+
+/* =========================================================
+   FULL-SCREEN PARTICIPANT MIRROR
+========================================================= */
+
+body.mirrorMode #header {
+    display: none !important;
+}
+
+body.mirrorMode #toolbar {
+    display: none !important;
+}
+
+body.mirrorMode #conferenceArea {
+    width: 100%;
+    height: 100dvh;
+    flex: 1;
+    min-height: 0;
+}
+
+body.mirrorMode #participantView {
+    display: block !important;
+
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    border: 0 !important;
+    border-radius: 0 !important;
+
+    background: #000 !important;
+
+    overflow: hidden;
+}
+
+body.mirrorMode #participantLeft {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    margin: 0;
+    padding: 0;
+
+    background: #000;
+}
+
+body.mirrorMode #participantVideoPanel {
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    border: 0;
+    border-radius: 0;
+
+    background: #000;
+
+    overflow: hidden;
+}
+
+body.mirrorMode #participantVideoStage {
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    background: #000;
+}
+
+body.mirrorMode #participantLocalVideo {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    transform: none;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    background: #000;
+
+    display: block;
+}
+
+body.mirrorMode #participantVideoControls {
+    display: none !important;
+}
+
+body.mirrorMode #participantVideoPlaceholder {
+    display: none !important;
+}
+
+body.mirrorMode #participantChatPanel {
+    display: none !important;
+}
+
+body.mirrorMode #participantBrowser {
+    display: none !important;
+}
+
+body.mirrorMode #adminPanel {
+    display: none !important;
+}
+
+body.mirrorMode #administratorView {
+    display: none !important;
+}
+
+body.mirrorMode {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+}
+
+body.mirrorMode #app {
+    width: 100%;
+    height: 100dvh;
+
+    display: block;
+
+    margin: 0;
+    padding: 0;
+
+    background: #000;
 }
 
 </style>
@@ -999,7 +1799,7 @@ input {
         >
 
         <div id="conferenceTitle">
-            Safe Insight Conference
+            CCW Conference
         </div>
 
         <div id="connectionStatus">
@@ -1019,6 +1819,8 @@ input {
             ADMINISTRATOR
         </div>
 
+
+        <section id="administratorView">
 
         <div id="videoGrid">
 
@@ -1132,17 +1934,15 @@ input {
                 <div class="tileStatus">
 
                     <div
-                        class="statusIcon"
+                        class="statusIcon off"
                         id="adminMicStatus"
                     >
-                        🎤
                     </div>
 
                     <div
-                        class="statusIcon"
+                        class="statusIcon off"
                         id="adminCameraStatus"
                     >
-                        📹
                     </div>
 
                 </div>
@@ -1220,6 +2020,68 @@ input {
 
         </div>
 
+        </section>
+
+        <section id="participantView">
+
+<div id="participantLeft">
+
+    <div id="participantVideoPanel" class="participantPanel">
+        <div id="participantVideoStage">
+            <video id="participantLocalVideo" autoplay playsinline muted></video>
+            <div id="participantVideoPlaceholder">Camera Off</div>
+
+            <div id="participantVideoControls">
+                <button class="toolbarButton" id="micButtonParticipant">🎤 Mic</button>
+                <button class="toolbarButton" id="cameraButtonParticipant">📹 Camera ON</button>
+                <button type="button" class="toolbarButton redButton" id="scheduleButtonParticipant" onclick="window.open('https://app.acuityscheduling.com/schedule/0fd3042a/appointment/56783178/calendar/14314778?appointmentTypeIds[]=56783178','_blank')">📅 Schedule</button>
+                <button class="toolbarButton redButton" id="leaveButtonParticipant">EXIT ROOM</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="participantChatPanel" class="participantPanel">
+        
+        <div id="participantChatMessages" class="chatMessages"></div>
+
+        <div class="chatComposer">
+            <input
+                id="participantChatInput"
+                type="text"
+                maxlength="500"
+                placeholder="Type a message..."
+            >
+
+            <button
+                id="participantChatSend"
+                class="chatSendButton"
+            >
+                Send
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<div id="participantBrowser">
+
+
+
+<div id="browserFrameContainer">
+
+    <iframe
+        id="participantBrowserFrame"
+        src="https://safeinsight.acadio.com/auth/signin?go=/dashboard"
+        title="Training Browser"
+        allow="camera; microphone; fullscreen"
+    ></iframe>
+
+</div>
+
+</div>
+
+        </section>
+
     </main>
 
 
@@ -1229,62 +2091,14 @@ input {
 
     <footer id="toolbar">
 
-        <button
-            class="toolbarButton blueButton"
-            id="adminPanelButton"
-        >
-            Participants
-        </button>
-
-            <button
-            class="toolbarButton blueButton"
-            id="adminCameraButton"
-        >
-            Administrator Video
-        </button>
-        
-    <button
-    type="button"
-    class="toolbarButton redButton"
-    onclick="window.open(
-        'https://safeinsight.acadio.com/auth/signin?go=/dashboard',
-        '_blank'
-    )"
-    >
-    Training Login
-    </button>
-        
-        <button
-            class="toolbarButton"
-            id="micButton"
-        >
-            🎤 Mic
-        </button>
-
-        <button
-            class="toolbarButton danger"
-            id="leaveButton"
-        >
-            Leave
-        </button>
-        
-        <button
-            class="toolbarButton"
-            id="cameraButton"
-        >
-            📹 Camera
-        </button>
-
-<button
-    type="button"
-    class="toolbarButton redButton"
-    onclick="window.open(
-        'https://app.acuityscheduling.com/schedule/0fd3042a/appointment/56783178/calendar/14314778?appointmentTypeIds[]=56783178',
-        '_blank'
-    )"
->
-    Schedule Conference
-</button>    
+        <div id="administratorToolbar" class="toolbarView">
+            <button class="toolbarButton redButton" id="adminChatButton">Chat</button>
+            <button class="toolbarButton" id="adminCameraButton">Camera OFF</button>
+            <button class="toolbarButton redButton" id="leaveButton">EXIT ROOM</button>
+            <button class="toolbarButton" id="micButton" style="background-color:#777;">🔇 Mic OFF</button>
+            <button type="button" class="toolbarButton redButton" id="adminLmsLoginButton" onclick="window.open('https://admin.acadio.com/auth?go=/dashboard')">Admin LMS</button>
+            <button class="toolbarButton redButton" id="adminPanelButton">Participants</button>
+        </div>
 
     </footer>
 
@@ -1307,17 +2121,17 @@ input {
         >
 
         <h1>
-            Safe Insight Conference
+            CCW Conference
         </h1>
 
         <p>
-            Please enter your name before joining the conference.
+            Please Enter Your FULL NAME <br> Then Knock To Join Room
         </p>
 
         <input
             type="text"
             id="nameInput"
-            placeholder="Enter your name"
+            placeholder="Enter your FULL NAME"
             maxlength="40"
             autocomplete="name"
         >
@@ -1366,6 +2180,25 @@ input {
 
 </div>
 
+
+<!-- =======================================================
+     ADMIN CHAT PANEL
+======================================================== -->
+<aside id="adminChatPanel">
+    <div class="chatPanelHeader">
+        <strong>Chat</strong>
+        <button id="closeAdminChat" class="chatCloseButton">✕</button>
+    </div>
+    <div class="adminChatRecipients">
+        <div class="chatRecipientsTitle">Send to:</div>
+        <div id="adminChatRecipients"></div>
+    </div>
+    <div id="adminChatMessages" class="chatMessages"></div>
+    <div class="chatComposer">
+        <input id="adminChatInput" type="text" maxlength="500" placeholder="Type a message...">
+        <button id="adminChatSend" class="chatSendButton">Send</button>
+    </div>
+</aside>
 
 <!-- =======================================================
      ADMIN PANEL
@@ -1421,6 +2254,46 @@ input {
     </div>
 
 </aside>
+
+
+<!-- =======================================================
+     CUSTOM ALERT / CONFIRM
+======================================================== -->
+<div id="customAlertOverlay" aria-hidden="true">
+    <div
+        id="customAlertBox"
+        class="customAlertBox"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="customAlertMessage"
+    >
+        <img
+            src="safe-insight-logo.png"
+            class="customAlertLogo"
+            alt="Safe Insight"
+        >
+
+        <div id="customAlertMessage"></div>
+
+        <div class="customAlertButtons">
+            <button
+                type="button"
+                id="customAlertCancel"
+                class="customAlertButton cancel"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                id="customAlertOk"
+                class="customAlertButton"
+            >
+                OK
+            </button>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1480,6 +2353,67 @@ let waitingParticipants = [];
 
 let nextParticipantId = 1;
 
+/* =========================================================
+   WEBRTC STATE
+========================================================= */
+
+const rtcConfiguration = {
+
+    iceServers: [
+
+        {
+            urls: "stun:stun.l.google.com:19302"
+        }
+
+    ]
+
+};
+
+
+/*
+ * Administrator:
+ * One RTCPeerConnection for each participant.
+ */
+
+const adminPeerConnections =
+    new Map();
+
+
+/*
+ * Participant:
+ * The administrator's RTCPeerConnection.
+ */
+
+let participantPeerConnection =
+    null;
+
+let mirrorPeerConnection =
+    null;
+
+let pendingMirrorIceCandidates =
+    [];
+
+let pendingMirrorOffer =
+    null;
+
+let participantScreenStream =
+    null;
+
+let webRTCSignalingReady =
+    false;
+    
+let mirrorCameraOn =
+    true;
+
+/*
+ * Supabase WebRTC signaling channel.
+ */
+
+let webrtcSignalingChannel =
+    null;
+
+let pendingParticipantIceCandidates =
+    [];
 
 /* =========================================================
    DETERMINE ADMINISTRATOR MODE
@@ -1503,6 +2437,12 @@ const params = new URLSearchParams(
 
 isAdministrator =
     params.get("admin") === "true";
+
+    const isMirror =
+    params.get("mirror") === "true";
+
+const mirrorParticipantId =
+    params.get("participant");
 
 
 /* =========================================================
@@ -1541,12 +2481,6 @@ const cameraButton =
 
 const leaveButton =
     document.getElementById("leaveButton");
-
-const trainingLoginButton =
-    document.getElementById("trainingLoginButton");
-
-const scheduleConferenceButton =
-    document.getElementById("scheduleConferenceButton");
     
 
 const adminVideo =
@@ -1570,12 +2504,481 @@ const participantList =
 const noParticipants =
     document.getElementById("noParticipants");
 
+const administratorView = document.getElementById("administratorView");
+const participantView = document.getElementById("participantView");
+const administratorToolbar = document.getElementById("administratorToolbar");
+const toolbar = document.getElementById("toolbar");
+const participantLocalVideo = document.getElementById("participantLocalVideo");
+const participantVideoPlaceholder = document.getElementById("participantVideoPlaceholder");
+const adminChatButton = document.getElementById("adminChatButton");
+const adminChatPanel = document.getElementById("adminChatPanel");
+const closeAdminChat = document.getElementById("closeAdminChat");
+const adminChatRecipients = document.getElementById("adminChatRecipients");
+const adminChatMessages = document.getElementById("adminChatMessages");
+const adminChatInput = document.getElementById("adminChatInput");
+const adminChatSend = document.getElementById("adminChatSend");
 
+const participantChatMessages = document.getElementById("participantChatMessages");
+const participantChatInput = document.getElementById("participantChatInput");
+const participantChatSend = document.getElementById("participantChatSend");
+const micButtonParticipant = document.getElementById("micButtonParticipant");
+const cameraButtonParticipant = document.getElementById("cameraButtonParticipant");
+const leaveButtonParticipant = document.getElementById("leaveButtonParticipant");
+
+
+const participantBrowserFrame =
+    document.getElementById("participantBrowserFrame");
+
+
+/* =========================================================
+   CUSTOM ALERT / CONFIRM REFERENCES
+========================================================= */
+
+const customAlertOverlay =
+    document.getElementById("customAlertOverlay");
+
+const customAlertMessage =
+    document.getElementById("customAlertMessage");
+
+const customAlertOk =
+    document.getElementById("customAlertOk");
+
+const customAlertCancel =
+    document.getElementById("customAlertCancel");
+
+/*
+ * EDIT THESE MESSAGES TO CHANGE WHAT USERS SEE.
+ *
+ * Dynamic messages (participant names and database errors)
+ * are functions so the changing information can be included.
+ */
+const CUSTOM_ALERT_MESSAGES = {
+
+    missingName:
+        "Please enter your FULL NAME.",
+
+    conferenceUnavailable:
+        "Unable to contact the conference room.",
+
+        participantChat:
+        "The Instructor sent you a chat message.",
+
+        participantKnock:
+        name => name + " is requesting to enter the conference.",
+
+    removed:
+        "The Instructor has removed you from the conference.",
+
+    denied:
+        "The Instructor did not allow entry to the conference.",
+
+    participantLeft:
+        name => name + " has left the conference.",
+
+    allowError:
+        error => "Unable to allow participant.\n\n" + error.message,
+
+    removeError:
+        error => "Unable to remove participant.\n\n" + error.message,
+
+    administratorCamera:
+        "Unable to access the administrator camera.",
+
+    administratorMicrophone:
+        "Microphone permission was not granted.",
+
+    denyError:
+        error => "Unable to deny participant.\n\n" + error.message,
+
+    conferenceFull:
+        "The conference is full. Maximum 8 participants plus the Instructor.",
+
+    sessionNotFound:
+        "Unable to identify your conference session.",
+
+    leaveError:
+        error => "Unable to leave the conference.\n\n" + error.message,
+
+    leaveConfirm:
+        "Leave this conference?",
+
+    screenShareRequest:
+        "The Instructor wants to view your screen.\n\nClick Share Screen to choose what you want to share."
+};
+
+/* =========================================================
+   CUSTOM ALERT / CONFIRM FUNCTIONS
+========================================================= */
+
+function showCustomAlert(message){
+
+    customAlertMessage.textContent =
+        message;
+
+    customAlertCancel.style.display =
+        "none";
+
+    customAlertOk.textContent =
+        "OK";
+
+    customAlertOverlay.classList.add(
+        "show"
+    );
+
+    customAlertOverlay.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    customAlertOk.focus();
+}
+
+function showCustomConfirm(message){
+
+    return new Promise(
+        function(resolve){
+
+            customAlertMessage.textContent =
+                message;
+
+            customAlertCancel.style.display =
+                "inline-block";
+
+            customAlertOk.textContent =
+                "Continue";
+
+            customAlertOverlay.classList.add(
+                "show"
+            );
+
+            customAlertOverlay.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+            function finish(result){
+
+                customAlertOverlay.classList.remove(
+                    "show"
+                );
+
+                customAlertOverlay.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+
+                customAlertCancel.style.display =
+                    "none";
+
+                customAlertOk.textContent =
+                    "OK";
+
+                customAlertOk.removeEventListener(
+                    "click",
+                    onConfirm
+                );
+
+                customAlertCancel.removeEventListener(
+                    "click",
+                    onCancel
+                );
+
+                resolve(result);
+            }
+
+            function onConfirm(){
+                finish(true);
+            }
+
+            function onCancel(){
+                finish(false);
+            }
+
+            customAlertOk.addEventListener(
+                "click",
+                onConfirm
+            );
+
+            customAlertCancel.addEventListener(
+                "click",
+                onCancel
+            );
+
+            customAlertOk.focus();
+        }
+    );
+}
+
+async function showScreenShareRequest(
+    participantId
+){
+
+    return new Promise(
+        function(resolve){
+
+            customAlertMessage.textContent =
+                CUSTOM_ALERT_MESSAGES.screenShareRequest;
+
+            customAlertCancel.style.display =
+                "inline-block";
+
+            customAlertOk.textContent =
+                "Share Screen";
+
+            customAlertOverlay.classList.add(
+                "show"
+            );
+
+            customAlertOverlay.setAttribute(
+                "aria-hidden",
+                "false"
+            );
+
+            async function onShareScreen(){
+
+                try{
+
+            participantScreenStream =
+                await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        displaySurface: "window"
+                    },
+                    audio: false,
+                    selfBrowserSurface: "exclude",
+                    monitorTypeSurfaces: "include"
+        });
+
+                    const screenTrack =
+                        participantScreenStream.getVideoTracks()[0];
+
+                    
+                    if(screenTrack){
+                    
+                        screenTrack.addEventListener(
+                            "ended",
+                            function(){
+                    
+                                console.log(
+                                    "PARTICIPANT SCREEN SHARE ENDED"
+                                );
+                    
+                                participantScreenStream =
+                                    null;
+                    
+                            }
+                        );
+                    
+                    }
+
+                                        /*
+                     * If the mirror already sent its
+                     * WebRTC offer, process it now
+                     * that the screen stream exists.
+                     */
+                    if(pendingMirrorOffer){
+
+                        const queuedOffer =
+                            pendingMirrorOffer;
+
+                        pendingMirrorOffer =
+                            null;
+
+                        await handleParticipantMirrorWebRTCSignal(
+                            queuedOffer
+                        );
+
+                    }
+
+                    await sendWebRTCSignal({
+                        type: "screen-share-ready",
+                        senderId: window.myParticipantId,
+                        targetId: "mirror-" + participantId,
+                        participantId: window.myParticipantId
+});
+
+                    customAlertOverlay.classList.remove(
+                        "show"
+                    );
+
+                    customAlertOverlay.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    customAlertCancel.style.display =
+                        "none";
+
+                    customAlertOk.textContent =
+                        "OK";
+
+                    customAlertOk.removeEventListener(
+                        "click",
+                        onShareScreen
+                    );
+
+                    customAlertCancel.removeEventListener(
+                        "click",
+                        onCancel
+                    );
+
+                    resolve(true);
+
+                }catch(error){
+
+                    console.log(
+                        "Screen share was not granted:",
+                        error
+                    );
+
+                    customAlertOverlay.classList.remove(
+                        "show"
+                    );
+
+                    customAlertOverlay.setAttribute(
+                        "aria-hidden",
+                        "true"
+                    );
+
+                    customAlertCancel.style.display =
+                        "none";
+
+                    customAlertOk.textContent =
+                        "OK";
+
+                    customAlertOk.removeEventListener(
+                        "click",
+                        onShareScreen
+                    );
+
+                    customAlertCancel.removeEventListener(
+                        "click",
+                        onCancel
+                    );
+
+                    resolve(false);
+                }
+            }
+
+            function onCancel(){
+
+                customAlertOverlay.classList.remove(
+                    "show"
+                );
+
+                customAlertOverlay.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+
+                customAlertCancel.style.display =
+                    "none";
+
+                customAlertOk.textContent =
+                    "OK";
+
+                customAlertOk.removeEventListener(
+                    "click",
+                    onShareScreen
+                );
+
+                customAlertCancel.removeEventListener(
+                    "click",
+                    onCancel
+                );
+
+                resolve(false);
+            }
+
+            customAlertOk.addEventListener(
+                "click",
+                onShareScreen
+            );
+
+            customAlertCancel.addEventListener(
+                "click",
+                onCancel
+            );
+
+            customAlertOk.focus();
+        }
+    );
+}
+
+/*
+ * Normal alerts close with OK.
+ * Confirmations are handled by their own listeners above.
+ */
+customAlertOk.addEventListener(
+    "click",
+    function(){
+
+        if(
+            customAlertCancel.style.display ===
+            "none"
+        ){
+
+            customAlertOverlay.classList.remove(
+                "show"
+            );
+
+            customAlertOverlay.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+        }
+
+    }
+);
+
+/*
+ * Clicking the dark area does NOT dismiss the modal.
+ * This keeps the behavior similar to a browser alert.
+ *
+ * Escape cancels a confirmation but does not dismiss
+ * a normal alert.
+ */
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        if(
+            event.key === "Escape" &&
+            customAlertOverlay.classList.contains("show") &&
+            customAlertCancel.style.display !== "none"
+        ){
+
+            customAlertCancel.click();
+        }
+
+    }
+);
+
+
+
+function updateAdminCameraButton(text){
+
+    adminCameraButton.textContent = text;
+
+    adminCameraButton.classList.toggle(
+        "logoActive",
+        text === "Cam ON"
+    );
+
+}
+
+
+
+    
 /* =========================================================
    INITIALIZE
 ========================================================= */
 
 function initializeApplication(){
+
+if(isMirror && !isAdministrator){
+    initializeParticipantMirror();
+    return;
+}
 
     if(isAdministrator){
 
@@ -1596,20 +2999,25 @@ function initializeApplication(){
 
 function initializeAdministrator(){
 
-    /*
-       Administrator does not need to knock.
-    */
+    joinScreen.classList.add(
+        "hidden"
+    );
 
-    joinScreen.classList.add("hidden");
+    administratorView.style.display =
+        "block";
 
-    adminModeBadge.style.display = "block";
+    participantView.style.display =
+        "none";
 
-    adminPanelButton.style.display = "block";
+    toolbar.style.display =
+        "flex";
 
-    adminCameraButton.style.display = "block";
+    administratorToolbar.style.display =
+        "flex";
 
-    trainingLoginButton.style.display = "none";
-    scheduleConferenceButton.style.display = "none";
+    adminModeBadge.style.display =
+        "none";
+
 
     connectionStatus.textContent =
         "● Administrator";
@@ -1617,8 +3025,200 @@ function initializeAdministrator(){
     connectionStatus.style.color =
         "#62ff62";
 
+
+    /*
+     * Get administrator camera
+     * and microphone.
+     */
+
+    initializeAdministratorMedia();
+
 }
 
+/* =========================================================
+   ADMINISTRATOR MEDIA
+========================================================= */
+
+async function initializeAdministratorMedia(){
+
+    if(!isAdministrator){
+
+        return;
+
+    }
+
+
+    if(localStream){
+
+        console.log(
+            "Administrator local stream already exists."
+        );
+
+        return;
+
+    }
+
+
+    try{
+
+        localStream =
+            await navigator.mediaDevices.getUserMedia({
+
+                video:
+                    true,
+
+                audio:
+                    true
+
+            });
+
+
+        console.log(
+            "Administrator local media acquired:",
+            localStream
+        );
+
+
+        /*
+         * Set initial administrator
+         * media states.
+         */
+
+        const videoTracks =
+            localStream.getVideoTracks();
+
+        const audioTracks =
+            localStream.getAudioTracks();
+
+
+if(videoTracks.length){
+    videoTracks[0].enabled = false;
+    administratorCameraOn = false;
+}
+
+if(audioTracks.length){
+    audioTracks[0].enabled = false;
+    administratorMicOn = false;
+}
+
+updateAdminCameraButton("Camera OFF");
+updateAdministratorCameraStatus();
+
+updateAdministratorMicButton();
+updateAdministratorMicStatus();
+
+    }catch(error){
+
+        console.error(
+            "ADMINISTRATOR MEDIA ERROR:",
+            error
+        );
+
+
+        if(connectionStatus){
+
+            connectionStatus.textContent =
+                "● Camera/microphone unavailable";
+
+            connectionStatus.style.color =
+                "#ff4444";
+
+        }
+
+    }
+
+}
+
+/* =========================================================
+   PARTICIPANT MIRROR
+========================================================= */
+    
+function initializeParticipantMirror(){
+
+    document.body.classList.add("mirrorMode");
+
+    joinScreen.classList.add("hidden");
+
+    administratorView.style.display = "none";
+
+    participantView.style.display = "flex";
+
+    toolbar.style.display = "none";
+
+    adminPanel.style.display = "none";
+
+    connectionStatus.textContent =
+        "● Participant Mirror";
+
+    connectionStatus.style.color =
+        "#62ff62";
+
+    /*
+     * Load the participant's current camera state
+     * and establish a receive-only mirror connection.
+     */
+    if(mirrorParticipantId){
+
+        supabaseClient
+            .from("conference_participants")
+            .select("camera_on")
+            .eq("id", mirrorParticipantId)
+            .single()
+            .then(function(result){
+
+                if(!result.error && result.data){
+
+                    mirrorCameraOn =
+                        result.data.camera_on !== false;
+
+                    cameraButtonParticipant.textContent =
+                        mirrorCameraOn
+                        ? "📹 Camera ON"
+                        : "📹 Camera OFF";
+
+                    cameraButtonParticipant.classList.toggle(
+                        "active",
+                        mirrorCameraOn
+                    );
+
+                }
+
+            });
+
+
+    }
+
+    /*
+     * Start the mirror receiver immediately.
+     * This prevents the screen-share signal
+     * from being lost while the mirror window
+     * is still loading.
+     */
+    if(mirrorParticipantId){
+
+        const waitForSignaling =
+            setInterval(
+                async function(){
+
+                    if(!webRTCSignalingReady){
+                        return;
+                    }
+
+                    clearInterval(
+                        waitForSignaling
+                    );
+
+                    await startParticipantMirrorWebRTC(
+                        mirrorParticipantId
+                    );
+
+                },
+                50
+            );
+
+    }
+
+}
 
 /* =========================================================
    PARTICIPANT
@@ -1626,21 +3226,15 @@ function initializeAdministrator(){
 
 function initializeParticipant(){
 
-    adminPanelButton.style.display = "none";
-
-    adminCameraButton.style.display = "none";
-
-    trainingLoginButton.style.display = "block";
-    scheduleConferenceButton.style.display = "block";
-
-    /*
-       Participant must enter name.
-    */
+    administratorView.style.display = "none";
+    participantView.style.display = "none";
+    toolbar.style.display = "none";
+    administratorToolbar.style.display = "none";
+    adminPanel.style.display = "none";
 
     joinScreen.classList.remove("hidden");
 
 }
-
 
 /* =========================================================
    KNOCK
@@ -1656,8 +3250,8 @@ knockButton.addEventListener(
 
         if(!name){
 
-            alert(
-                "Please enter your name."
+            showCustomAlert(
+                CUSTOM_ALERT_MESSAGES.missingName
             );
 
             nameInput.focus();
@@ -1685,6 +3279,22 @@ knockButton.addEventListener(
                     video:true,
                     audio:true
                 });
+
+        const audioTracks =
+    localStream.getAudioTracks();
+
+audioTracks.forEach(
+    track => {
+        track.enabled = false;
+    }
+);
+
+micButtonParticipant.textContent =
+    "🔇 Mic OFF";
+
+micButtonParticipant.classList.remove(
+    "active"
+);
 
         }catch(error){
 
@@ -1726,7 +3336,7 @@ knockButton.addEventListener(
                     true,
 
                 mic_on:
-                    true,
+                    false,
 
                 mic_locked:
                     false
@@ -1743,8 +3353,8 @@ knockButton.addEventListener(
                 error
             );
 
-            alert(
-                "Unable to contact the conference room."
+            showCustomAlert(
+                CUSTOM_ALERT_MESSAGES.conferenceUnavailable
             );
 
             knockButton.disabled =
@@ -1764,14 +3374,24 @@ knockButton.addEventListener(
            We will need this later for WebRTC.
         */
 
-        window.myParticipantId =
-            data.id;
+window.myParticipantId =
+    data.id;
 
+/*
+ * Create the participant WebRTC
+ * peer connection now, while we
+ * are waiting for administrator
+ * approval.
+ */
 
-        console.log(
-            "Knock successful:",
-            data
-        );
+startParticipantWebRTC(
+    data
+);
+
+console.log(
+    "Knock successful:",
+    data
+);
 
 
         /*
@@ -1859,32 +3479,32 @@ function subscribeToMyParticipant(participantId){
                     const participant =
                         payload.new;
 
-                    if(
-                        participant.status ===
-                        "approved"
-                    ){
+if(
+    participant.status ===
+    "approved" &&
+    participantView.style.display !== "flex"
+){
 
-                        console.log(
-                            "ENTRY APPROVED"
-                        );
+    console.log(
+        "ENTRY APPROVED"
+    );
 
-                        enterConference(
-                            participant
-                        );
+    enterConference(
+        participant
+    );
 
-                        /*
-                         * Start the actual WebRTC
-                         * connection here.
-                         *
-                         * We will add the WebRTC
-                         * function next.
-                         */
-                        startParticipantWebRTC(
-                            participant
-                        );
+    /*
+     * Start the actual WebRTC
+     * connection here.
+     *
+     * We will add the WebRTC
+     * function next.
+     */
+    startParticipantWebRTC(
+        participant
+    );
 
-                    }
-
+}
                     if(
                         participant.status ===
                         "denied"
@@ -1930,11 +3550,1895 @@ function subscribeToMyParticipant(participantId){
 }
 
 /* =========================================================
+   WEBRTC SIGNALING
+========================================================= */
+
+async function sendWebRTCSignal(
+    signal
+){
+
+    if(!webrtcSignalingChannel){
+
+        console.error(
+            "WebRTC signaling channel is not initialized."
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        "SENDING WEBRTC SIGNAL:",
+        signal
+    );
+
+
+    const result =
+        await webrtcSignalingChannel.send({
+
+            type:
+                "broadcast",
+
+            event:
+                "webrtc-signal",
+
+            payload:
+                signal
+
+        });
+
+
+    console.log(
+        "WEBRTC SIGNAL SENT:",
+        result
+    );
+
+}
+
+
+/* =========================================================
+   WEBRTC SIGNALING CHANNEL
+========================================================= */
+
+function initializeWebRTCSignaling(){
+
+    if(webrtcSignalingChannel){
+
+        return;
+
+    }
+
+
+    console.log(
+        "Initializing WebRTC signaling:",
+        ROOM_ID
+    );
+
+
+    webrtcSignalingChannel =
+        supabaseClient.channel(
+            "webrtc-room-" + ROOM_ID
+        );
+
+
+    webrtcSignalingChannel
+        .on(
+            "broadcast",
+            {
+                event:
+                    "webrtc-signal"
+            },
+            async function(payload){
+
+                console.log(
+                    "WEBRTC SIGNAL RECEIVED:",
+                    payload
+                );
+
+
+                const signal =
+                    payload.payload;
+
+
+                if(!signal){
+
+                    return;
+
+                }
+
+
+                /*
+                 * Ignore our own signals.
+                 */
+
+                if(
+                    signal.senderId ===
+                    window.myParticipantId
+                ){
+
+                    return;
+
+                }
+
+    /*
+ * Participant receives
+ * mirror WebRTC signal.
+ */
+if(
+    !isAdministrator &&
+    signal.targetId ===
+    window.myParticipantId &&
+    (
+        signal.type === "mirror-offer" ||
+        signal.type === "mirror-ice-candidate"
+    )
+){
+
+    console.log(
+        "PARTICIPANT RECEIVED MIRROR SIGNAL:",
+        signal
+    );
+
+    await handleParticipantMirrorWebRTCSignal(
+        signal
+    );
+
+    return;
+}
+
+
+/*
+ * Mirror receives
+ * participant screen-share approval.
+ */
+if(
+    isMirror &&
+    signal.targetId ===
+    "mirror-" + mirrorParticipantId &&
+    signal.type === "screen-share-ready"
+){
+
+    console.log(
+        "MIRROR RECEIVED SCREEN SHARE READY:",
+        signal
+    );
+
+    if(webRTCSignalingReady){
+
+        await startParticipantMirrorWebRTC(
+            mirrorParticipantId
+        );
+
+    }
+
+    return;
+}
+
+
+/*
+ * Mirror receives
+ * participant WebRTC signal.
+ */
+if(
+    isMirror &&
+    signal.targetId ===
+    "mirror-" + mirrorParticipantId &&
+    (
+        signal.type === "mirror-answer" ||
+        signal.type === "mirror-ice-candidate"
+    )
+){
+
+    console.log(
+        "MIRROR RECEIVED PARTICIPANT SIGNAL:",
+        signal
+    );
+
+    await handleMirrorWebRTCSignal(
+        signal
+    );
+
+    return;
+}
+
+/*
+ * Participant receives
+ * administrator screen-share request.
+ */
+
+if(
+    !isAdministrator &&
+    signal.targetId ===
+    window.myParticipantId &&
+    signal.type === "screen-share-request"
+){
+
+    console.log(
+        "PARTICIPANT RECEIVED SCREEN SHARE REQUEST:",
+        signal
+    );
+
+            await showScreenShareRequest(
+            signal.participantId
+        );
+
+    return;
+}
+
+                /*
+                 * Participant receives
+                 * administrator signal.
+                 */
+
+if(
+    !isAdministrator &&
+    signal.targetId ===
+    window.myParticipantId
+){
+
+    console.log(
+        "PARTICIPANT RECEIVED ADMIN SIGNAL:",
+        signal
+    );
+
+    console.log(
+        "LOCK STATUS RECEIVED:",
+        signal.locked
+    );
+
+    await handleParticipantWebRTCSignal(
+        signal
+    );
+
+    return;
+}
+
+
+                /*
+                 * Administrator receives
+                 * participant signal.
+                 */
+
+                if(
+                    isAdministrator &&
+                    signal.targetId ===
+                    "administrator"
+                ){
+
+                    await handleAdminWebRTCSignal(
+                        signal
+                    );
+
+                    return;
+
+                }
+
+            }
+        )
+        .subscribe(
+
+            
+function(status){
+
+    console.log(
+        "WebRTC signaling status:",
+        status
+    );
+
+
+    if(status === "SUBSCRIBED"){
+
+        webRTCSignalingReady =
+            true;
+
+        console.log(
+            "WEBRTC SIGNALING READY"
+        );
+
+    }
+
+}
+        );
+
+}
+    
+/* =========================================================
+   PARTICIPANT WEBRTC
+========================================================= */
+
+async function startParticipantWebRTC(
+    participant
+){
+
+    console.log(
+        "Starting participant WebRTC:",
+        participant
+    );
+
+
+    if(isAdministrator){
+
+        console.log(
+            "Participant WebRTC function called on administrator. Ignoring."
+        );
+
+        return;
+
+    }
+
+
+    if(!localStream){
+
+        console.error(
+            "Cannot start WebRTC: localStream does not exist."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        participantPeerConnection
+    ){
+
+        console.log(
+            "Participant peer connection already exists."
+        );
+
+        return;
+
+    }
+
+
+    participantPeerConnection =
+        new RTCPeerConnection(
+            rtcConfiguration
+        );
+
+
+    /*
+     * Send participant camera
+     * and microphone to administrator.
+     */
+
+    localStream
+        .getTracks()
+        .forEach(
+            track => {
+
+                participantPeerConnection.addTrack(
+                    track,
+                    localStream
+                );
+
+            }
+        );
+
+
+
+
+
+    /*
+     * Send participant ICE candidates.
+     */
+
+    participantPeerConnection.onicecandidate =
+        async function(event){
+
+            if(!event.candidate){
+                return;
+            }
+
+
+            await sendWebRTCSignal({
+
+                type:
+                    "ice-candidate",
+
+                senderId:
+                    window.myParticipantId,
+
+                targetId:
+                    "administrator",
+
+                participantId:
+                    window.myParticipantId,
+
+                candidate:
+                    event.candidate
+
+            });
+
+        };
+
+
+    /*
+     * Monitor connection.
+     */
+
+    participantPeerConnection.onconnectionstatechange =
+        function(){
+
+            console.log(
+                "PARTICIPANT WEBRTC CONNECTION STATE:",
+                participantPeerConnection.connectionState
+            );
+
+
+            if(
+                participantPeerConnection.connectionState ===
+                "connected"
+            ){
+
+                console.log(
+                    "PARTICIPANT WEBRTC CONNECTED"
+                );
+
+
+                if(connectionStatus){
+
+                    connectionStatus.textContent =
+                        "● Connected";
+
+                    connectionStatus.style.color =
+                        "#62ff62";
+
+                }
+
+            }
+
+
+            if(
+                participantPeerConnection.connectionState ===
+                "failed"
+            ){
+
+                console.error(
+                    "PARTICIPANT WEBRTC CONNECTION FAILED"
+                );
+
+
+                if(connectionStatus){
+
+                    connectionStatus.textContent =
+                        "● Connection failed";
+
+                    connectionStatus.style.color =
+                        "#ff4444";
+
+                }
+
+            }
+
+        };
+
+
+    /*
+     * The participant does NOT create the
+     * initial offer.
+     *
+     * The administrator does that after
+     * receiving the participant.
+     */
+
+    console.log(
+        "Participant WebRTC ready and waiting for administrator offer."
+    );
+
+}
+
+/* =========================================================
+   PARTICIPANT MIRROR WEBRTC
+========================================================= */
+
+async function startParticipantMirrorWebRTC(
+    participantId
+){
+
+    if(!isMirror){
+        return;
+    }
+
+    if(!participantId){
+        return;
+    }
+
+    if(mirrorPeerConnection){
+        return;
+    }
+
+    console.log(
+        "Starting participant mirror WebRTC:",
+        participantId
+    );
+
+    mirrorPeerConnection =
+        new RTCPeerConnection(
+            rtcConfiguration
+        );
+
+const videoTransceiver =
+    mirrorPeerConnection.addTransceiver(
+        "video",
+        {
+            direction: "recvonly"
+        }
+    );
+
+    /*
+     * Receive the participant's media stream.
+     */
+    mirrorPeerConnection.ontrack =
+        function(event){
+
+            console.log(
+                "MIRROR RECEIVED PARTICIPANT TRACK:",
+                event.track.kind
+            );
+
+            let remoteStream =
+                participantLocalVideo.srcObject;
+
+            if(!remoteStream){
+                remoteStream =
+                    new MediaStream();
+
+                participantLocalVideo.srcObject =
+                    remoteStream;
+            }
+
+            if(
+                !remoteStream
+                    .getTracks()
+                    .some(
+                        track =>
+                            track.id ===
+                            event.track.id
+                    )
+            ){
+                remoteStream.addTrack(
+                    event.track
+                );
+            }
+
+            participantLocalVideo.style.display =
+                "block";
+
+            participantVideoPlaceholder.style.display =
+                "none";
+
+            participantLocalVideo
+                .play()
+                .catch(function(error){
+
+                    if(error.name !== "AbortError"){
+
+                        console.error(
+                            "MIRROR VIDEO PLAY ERROR:",
+                            error
+                        );
+
+                    }
+
+                });
+
+        };
+
+    /*
+     * Send mirror ICE candidates
+     * back to the participant.
+     */
+    mirrorPeerConnection.onicecandidate =
+        async function(event){
+
+            if(!event.candidate){
+                return;
+            }
+
+            await sendWebRTCSignal({
+
+                type:
+                    "mirror-ice-candidate",
+
+                senderId:
+                    "mirror-" + participantId,
+
+                targetId:
+                    participantId,
+
+                participantId:
+                    participantId,
+
+                candidate:
+                    event.candidate
+
+            });
+
+        };
+
+    mirrorPeerConnection.onconnectionstatechange =
+        function(){
+
+            console.log(
+                "MIRROR WEBRTC CONNECTION STATE:",
+                mirrorPeerConnection.connectionState
+            );
+
+        };
+
+    /*
+     * Create the mirror offer.
+     */
+    const offer =
+        await mirrorPeerConnection.createOffer();
+
+    await mirrorPeerConnection.setLocalDescription(
+        offer
+    );
+
+    await sendWebRTCSignal({
+
+        type:
+            "mirror-offer",
+
+        senderId:
+            "mirror-" + participantId,
+
+        targetId:
+            participantId,
+
+        participantId:
+            participantId,
+
+        offer:
+            offer
+
+    });
+
+    console.log(
+        "Mirror WebRTC offer sent:",
+        participantId
+    );
+
+}
+
+/* =========================================================
+   PARTICIPANT MIRROR WEBRTC SIGNAL HANDLER
+========================================================= */
+
+async function handleParticipantMirrorWebRTCSignal(
+    signal
+){
+
+    /*
+     * Mirror offer.
+     */
+    if(
+        signal.type ===
+        "mirror-offer"
+    ){
+
+        console.log(
+            "PARTICIPANT RECEIVED MIRROR OFFER:",
+            signal
+        );
+
+
+
+        if(mirrorPeerConnection){
+
+            mirrorPeerConnection.close();
+
+        }
+
+        mirrorPeerConnection =
+            new RTCPeerConnection(
+                rtcConfiguration
+            );
+
+/*
+ * Send the participant's approved
+ * screen-share video track to the mirror.
+ */
+if(
+    !participantScreenStream ||
+    participantScreenStream.getVideoTracks().length === 0
+){
+
+    console.log(
+        "MIRROR OFFER RECEIVED BEFORE SCREEN SHARE. QUEUING OFFER."
+    );
+
+    pendingMirrorOffer =
+        signal;
+
+    return;
+}
+
+const screenVideoTrack =
+    participantScreenStream.getVideoTracks()[0];
+
+mirrorPeerConnection.addTrack(
+    screenVideoTrack,
+    participantScreenStream
+);
+
+        mirrorPeerConnection.onicecandidate =
+            async function(event){
+
+                if(!event.candidate){
+                    return;
+                }
+
+                await sendWebRTCSignal({
+
+                    type:
+                        "mirror-ice-candidate",
+
+                    senderId:
+                        window.myParticipantId,
+
+                    targetId:
+                        signal.senderId,
+
+                    participantId:
+                        window.myParticipantId,
+
+                    candidate:
+                        event.candidate
+
+                });
+
+            };
+
+        await mirrorPeerConnection.setRemoteDescription(
+            signal.offer
+        );
+
+        /*
+         * Add ICE candidates that arrived
+         * before the mirror offer.
+         */
+        for(
+            const candidate
+            of pendingMirrorIceCandidates
+        ){
+
+            try{
+
+                await mirrorPeerConnection.addIceCandidate(
+                    candidate
+                );
+
+            }catch(error){
+
+                console.error(
+                    "MIRROR QUEUED ICE ERROR:",
+                    error
+                );
+
+            }
+
+        }
+
+        pendingMirrorIceCandidates =
+            [];
+
+        const answer =
+            await mirrorPeerConnection.createAnswer();
+
+        await mirrorPeerConnection.setLocalDescription(
+            answer
+        );
+
+        await sendWebRTCSignal({
+
+            type:
+                "mirror-answer",
+
+            senderId:
+                window.myParticipantId,
+
+            targetId:
+                signal.senderId,
+
+            participantId:
+                window.myParticipantId,
+
+            answer:
+                answer
+
+        });
+
+        console.log(
+            "Participant mirror answer sent."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Mirror ICE candidate.
+     */
+    if(
+        signal.type ===
+        "mirror-ice-candidate"
+    ){
+
+        if(!mirrorPeerConnection){
+
+            pendingMirrorIceCandidates.push(
+                signal.candidate
+            );
+
+            return;
+
+        }
+
+        if(
+            !mirrorPeerConnection.remoteDescription
+        ){
+
+            pendingMirrorIceCandidates.push(
+                signal.candidate
+            );
+
+            return;
+
+        }
+
+        try{
+
+            await mirrorPeerConnection.addIceCandidate(
+                signal.candidate
+            );
+
+        }catch(error){
+
+            console.error(
+                "PARTICIPANT MIRROR ICE ERROR:",
+                error
+            );
+
+        }
+
+    }
+
+}
+
+async function handleMirrorWebRTCSignal(
+    signal
+){
+
+    if(!mirrorPeerConnection){
+        return;
+    }
+
+    /*
+     * Participant's answer.
+     */
+    if(
+        signal.type ===
+        "mirror-answer"
+    ){
+
+        await mirrorPeerConnection.setRemoteDescription(
+            signal.answer
+        );
+
+        console.log(
+            "Mirror accepted participant answer."
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Participant ICE candidate.
+     */
+    if(
+        signal.type ===
+        "mirror-ice-candidate"
+    ){
+
+        if(
+            !mirrorPeerConnection.remoteDescription
+        ){
+
+            pendingMirrorIceCandidates.push(
+                signal.candidate
+            );
+
+            return;
+
+        }
+
+        try{
+
+            await mirrorPeerConnection.addIceCandidate(
+                signal.candidate
+            );
+
+        }catch(error){
+
+            console.error(
+                "MIRROR ICE ERROR:",
+                error
+            );
+
+        }
+
+    }
+
+}
+    
+/* =========================================================
+   PARTICIPANT WEBRTC SIGNAL HANDLER
+========================================================= */
+
+async function handleParticipantWebRTCSignal(
+    signal
+){
+    
+    console.log(
+        "PARTICIPANT HANDLING WEBRTC SIGNAL:",
+        signal
+    );
+
+    /*
+     * Administrator media control.
+     */
+
+    if(
+        signal.type ===
+        "participant-media-control"
+    ){
+
+        if(!localStream){
+
+            console.warn(
+                "Participant media control received, but localStream does not exist."
+            );
+
+            return;
+
+        }
+
+if(
+    signal.media ===
+    "camera"
+){
+
+    localStream
+        .getVideoTracks()
+        .forEach(
+            track => {
+
+                track.enabled =
+                    signal.enabled;
+
+            }
+        );
+
+
+    participantLocalVideo.style.display =
+        signal.enabled
+        ? "block"
+        : "none";
+
+
+    participantVideoPlaceholder.style.display =
+        signal.enabled
+        ? "none"
+        : "flex";
+
+
+    cameraButtonParticipant.textContent =
+        signal.enabled
+        ? "📹 Camera ON"
+        : "📹 Camera OFF";
+
+
+    cameraButtonParticipant.classList.toggle(
+        "active",
+        signal.enabled
+    );
+
+if(window.myParticipantId){
+
+    await supabaseClient
+        .from("conference_participants")
+        .update({
+            camera_on:
+                signal.enabled,
+
+            updated_at:
+                new Date().toISOString()
+        })
+        .eq(
+            "id",
+            window.myParticipantId
+        );
+
+}
+
+    console.log(
+        "PARTICIPANT CAMERA CONTROL:",
+        signal.enabled
+    );
+
+}
+
+
+if(
+    signal.media ===
+    "microphone"
+){
+
+    /*
+     * LOCKED microphone:
+     * Always force the participant's
+     * microphone OFF and show LOCKED.
+     */
+
+    if(signal.locked){
+
+        if(localStream){
+
+            localStream
+                .getAudioTracks()
+                .forEach(
+                    track => {
+
+                        track.enabled =
+                            false;
+
+                    }
+                );
+
+        }
+
+
+        micButtonParticipant.textContent =
+            "🔇 LOCKED";
+
+        micButtonParticipant.classList.remove(
+            "active"
+        );
+
+
+        console.log(
+            "PARTICIPANT MICROPHONE LOCKED"
+        );
+
+        return;
+    }
+
+
+    /*
+     * Normal microphone control.
+     */
+
+    if(!localStream){
+
+        console.warn(
+            "Participant microphone control received, but localStream does not exist."
+        );
+
+        return;
+    }
+
+
+    const audioTracks =
+        localStream.getAudioTracks();
+
+
+    if(!audioTracks.length){
+
+        console.warn(
+            "PARTICIPANT MICROPHONE CONTROL: No audio track found."
+        );
+
+        return;
+    }
+
+
+    audioTracks.forEach(
+        track => {
+
+            track.enabled =
+                signal.enabled;
+
+        }
+    );
+
+
+    micButtonParticipant.textContent =
+        signal.enabled
+        ? "🎤 Mic ON"
+        : "🔇 Mic OFF";
+
+
+    micButtonParticipant.classList.toggle(
+        "active",
+        signal.enabled
+    );
+
+
+    console.log(
+        "PARTICIPANT MICROPHONE CONTROL:",
+        signal.enabled,
+        "Audio track enabled:",
+        audioTracks[0].enabled
+    );
+
+}
+        return;
+    }
+
+
+    /*
+     * Administrator ICE candidate.
+     */
+
+if(
+    signal.type ===
+    "ice-candidate"
+){
+
+    if(!signal.candidate){
+
+        return;
+
+    }
+
+
+    /*
+     * If the participant peer connection
+     * does not exist yet, save the candidate.
+     */
+
+if(
+    !participantPeerConnection ||
+    !participantPeerConnection.remoteDescription
+){
+
+    pendingParticipantIceCandidates.push(
+        signal.candidate
+    );
+
+    console.log(
+        "Queued participant ICE candidate until administrator offer is accepted."
+    );
+
+    return;
+}
+
+
+    try{
+
+        await participantPeerConnection.addIceCandidate(
+            signal.candidate
+        );
+
+
+        console.log(
+            "Participant ICE candidate added."
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "PARTICIPANT ICE CANDIDATE ERROR:",
+            error
+        );
+
+    }
+
+
+    return;
+}
+
+
+    /*
+     * Administrator's offer.
+     */
+
+if(
+    signal.type ===
+    "offer"
+){
+
+console.log(
+    "PARTICIPANT RECEIVED ADMINISTRATOR OFFER:",
+    signal
+);
+
+if(!participantPeerConnection){
+
+    console.error(
+        "PARTICIPANT WEBRTC ERROR: peer connection was not created before offer."
+    );
+
+    return;
+
+}
+
+
+await participantPeerConnection.setRemoteDescription(
+    signal.offer
+);
+
+console.log(
+    "Participant administrator offer accepted."
+);
+
+/*
+ * Add any ICE candidates that arrived
+ * before the administrator offer.
+ */
+
+if(
+    pendingParticipantIceCandidates.length
+){
+
+    console.log(
+        "Adding queued participant ICE candidates:",
+        pendingParticipantIceCandidates.length
+    );
+
+    for(
+        const candidate
+        of pendingParticipantIceCandidates
+    ){
+
+        try{
+
+            await participantPeerConnection.addIceCandidate(
+                candidate
+            );
+
+            console.log(
+                "Queued participant ICE candidate added."
+            );
+
+        }catch(error){
+
+            console.error(
+                "QUEUED PARTICIPANT ICE ERROR:",
+                error
+            );
+
+        }
+
+    }
+
+    pendingParticipantIceCandidates =
+        [];
+
+}
+
+const answer =
+    await participantPeerConnection.createAnswer();
+
+
+        await participantPeerConnection.setLocalDescription(
+            answer
+        );
+
+
+        await sendWebRTCSignal({
+
+            type:
+                "answer",
+
+            senderId:
+                window.myParticipantId,
+
+            targetId:
+                "administrator",
+
+            participantId:
+                window.myParticipantId,
+
+            answer:
+                answer
+
+        });
+
+
+        console.log(
+            "Participant WebRTC answer sent."
+        );
+
+    }
+
+}
+
+/* =========================================================
+   ADMINISTRATOR WEBRTC CONNECTION
+========================================================= */
+
+async function createAdminPeerConnection(
+    participantId
+){
+
+    console.log(
+        "Creating administrator WebRTC connection for:",
+        participantId
+    );
+
+
+    /*
+     * Make absolutely sure the administrator
+     * media stream exists before creating
+     * the offer.
+     */
+
+    await initializeAdministratorMedia();
+
+
+    if(!localStream){
+
+        console.error(
+            "ADMIN WEBRTC ABORTED: administrator localStream does not exist."
+        );
+
+        return null;
+
+    }
+
+
+    /*
+     * Prevent duplicate connections.
+     */
+
+    if(
+        adminPeerConnections.has(
+            participantId
+        )
+    ){
+
+        console.log(
+            "Administrator peer connection already exists:",
+            participantId
+        );
+
+        return adminPeerConnections.get(
+            participantId
+        );
+
+    }
+
+
+    const peerConnection =
+        new RTCPeerConnection(
+            rtcConfiguration
+        );
+
+
+    adminPeerConnections.set(
+        participantId,
+        peerConnection
+    );
+
+/*
+ * Tell WebRTC that the administrator
+ * wants to RECEIVE participant video
+ * and audio.
+ *
+ * The administrator does NOT send
+ * media to the participant.
+ */
+
+peerConnection.addTransceiver(
+    "video",
+    {
+        direction: "recvonly"
+    }
+);
+
+peerConnection.addTransceiver(
+    "audio",
+    {
+        direction: "recvonly"
+    }
+);
+
+
+    /*
+     * Receive participant camera
+     * and microphone.
+     */
+
+    peerConnection.ontrack =
+        function(event){
+
+            console.log(
+                "ADMIN RECEIVED PARTICIPANT TRACK:",
+                participantId,
+                event
+            );
+
+
+            const remoteStream =
+                event.streams[0];
+
+
+            if(!remoteStream){
+
+                console.warn(
+                    "Participant remote stream unavailable:",
+                    participantId
+                );
+
+                return;
+
+            }
+
+
+            attachRemoteParticipantStream(
+                participantId,
+                remoteStream
+            );
+
+        };
+
+
+    /*
+     * Send administrator ICE candidates.
+     */
+
+    peerConnection.onicecandidate =
+        async function(event){
+
+            if(!event.candidate){
+
+                return;
+
+            }
+
+
+            await sendWebRTCSignal({
+
+                type:
+                    "ice-candidate",
+
+                senderId:
+                    "administrator",
+
+                targetId:
+                    participantId,
+
+                participantId:
+                    participantId,
+
+                candidate:
+                    event.candidate
+
+            });
+
+        };
+
+
+    /*
+     * Monitor connection state.
+     */
+
+    peerConnection.onconnectionstatechange =
+        function(){
+
+            console.log(
+                "ADMIN WEBRTC CONNECTION STATE:",
+                participantId,
+                peerConnection.connectionState
+            );
+
+
+            if(
+                peerConnection.connectionState ===
+                "connected"
+            ){
+
+                console.log(
+                    "WEBRTC CONNECTED TO PARTICIPANT:",
+                    participantId
+                );
+
+            }
+
+
+            if(
+                peerConnection.connectionState ===
+                "failed"
+            ){
+
+                console.error(
+                    "WEBRTC CONNECTION FAILED:",
+                    participantId
+                );
+
+            }
+
+        };
+
+
+    /*
+     * Create administrator offer.
+     */
+
+    const offer =
+        await peerConnection.createOffer();
+
+
+    await peerConnection.setLocalDescription(
+        offer
+    );
+
+
+    await sendWebRTCSignal({
+
+        type:
+            "offer",
+
+        senderId:
+            "administrator",
+
+        targetId:
+            participantId,
+
+        participantId:
+            participantId,
+
+        offer:
+            offer
+
+    });
+
+
+    console.log(
+        "Administrator WebRTC offer sent:",
+        participantId
+    );
+
+
+    return peerConnection;
+
+}
+
+/* =========================================================
+   ADMINISTRATOR WEBRTC SIGNAL HANDLER
+========================================================= */
+
+async function handleAdminWebRTCSignal(
+    signal
+){
+
+    console.log(
+        "ADMIN HANDLING WEBRTC SIGNAL:",
+        signal
+    );
+
+
+    const participantId =
+        signal.participantId;
+
+
+    if(!participantId){
+
+        console.warn(
+            "Administrator WebRTC signal has no participant ID."
+        );
+
+        return;
+
+    }
+
+
+    const peerConnection =
+        adminPeerConnections.get(
+            participantId
+        );
+
+
+    /*
+     * Participant ICE candidate.
+     */
+
+    if(
+        signal.type ===
+        "ice-candidate"
+    ){
+
+        if(
+            peerConnection &&
+            signal.candidate
+        ){
+
+            try{
+
+                await peerConnection.addIceCandidate(
+                    signal.candidate
+                );
+
+            }catch(error){
+
+                console.error(
+                    "ADMIN ICE CANDIDATE ERROR:",
+                    error
+                );
+
+            }
+
+        }
+
+        return;
+
+    }
+
+
+    /*
+     * Participant answer.
+     */
+
+    if(
+        signal.type ===
+        "answer"
+    ){
+
+        if(!peerConnection){
+
+            console.error(
+                "No administrator peer connection for:",
+                participantId
+            );
+
+            return;
+
+        }
+
+
+        await peerConnection.setRemoteDescription(
+            signal.answer
+        );
+
+
+        console.log(
+            "Administrator accepted participant answer:",
+            participantId
+        );
+
+    }
+
+}
+
+/* =========================================================
+   ADMIN RECEIVES PARTICIPANT VIDEO
+========================================================= */
+
+function attachRemoteParticipantStream(
+    participantId,
+    remoteStream
+){
+
+    console.log(
+        "Attaching participant WebRTC stream:",
+        participantId
+    );
+
+
+    const tile =
+        document.querySelector(
+            `.videoTile[data-participant-id="${participantId}"]`
+        );
+
+
+    if(!tile){
+
+        console.warn(
+            "Administrator video tile not found:",
+            participantId
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * updateParticipantTile() already creates
+     * the video element.
+     *
+     * Use that existing video element.
+     */
+
+    const video =
+        tile.querySelector(
+            "video"
+        );
+
+
+    if(!video){
+
+        console.warn(
+            "Participant video element not found:",
+            participantId
+        );
+
+        return;
+
+    }
+
+
+    /*
+     * Attach the actual WebRTC stream.
+     */
+
+    if(
+        video.srcObject !== remoteStream
+    ){
+
+        video.srcObject =
+            remoteStream;
+
+
+        video.autoplay =
+            true;
+
+
+        video.playsInline =
+            true;
+
+
+        video.muted =
+            true;
+
+
+        video.style.display =
+            "block";
+
+
+        video.play().then(
+            function(){
+
+                console.log(
+                    "PARTICIPANT VIDEO ATTACHED TO ADMIN TILE:",
+                    participantId
+                );
+
+            }
+        ).catch(
+            function(error){
+
+                if(
+                    error.name !==
+                    "AbortError"
+                ){
+
+                    console.error(
+                        "PARTICIPANT VIDEO PLAY FAILED:",
+                        participantId,
+                        error
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+}
+
+
+
+/* =========================================================
+   CLOSE ADMINISTRATOR WEBRTC CONNECTION
+========================================================= */
+
+function closeParticipantWebRTC(
+    participantId
+){
+
+    console.log(
+        "Closing administrator WebRTC connection:",
+        participantId
+    );
+
+    /*
+     * Find the participant's administrator tile
+     * BEFORE closing the connection.
+     */
+    const tile =
+        document.querySelector(
+            `.videoTile[data-participant-id="${participantId}"]`
+        );
+
+    /*
+     * Immediately stop and detach ANY video element
+     * belonging to this participant.
+     */
+    if(tile){
+
+        const videos =
+            tile.querySelectorAll(
+                "video"
+            );
+
+        videos.forEach(
+            function(video){
+
+                video.pause();
+
+                video.srcObject =
+                    null;
+
+                video.removeAttribute(
+                    "src"
+                );
+
+                video.load();
+
+            }
+        );
+
+    }
+
+    /*
+     * Now close the WebRTC connection.
+     */
+    const peerConnection =
+        adminPeerConnections.get(
+            participantId
+        );
+
+    if(peerConnection){
+
+        peerConnection.ontrack =
+            null;
+
+        peerConnection.onicecandidate =
+            null;
+
+        peerConnection.onconnectionstatechange =
+            null;
+
+        peerConnection.close();
+
+        adminPeerConnections.delete(
+            participantId
+        );
+
+    }
+
+}
+
+/* =========================================================
    REMOVED BY ADMINISTRATOR
 ========================================================= */
 
 function showRemovedScreen(){
 
+    /*
+     * Close participant WebRTC connection.
+     */
+
+    if(participantPeerConnection){
+
+        participantPeerConnection.close();
+
+        participantPeerConnection =
+            null;
+
+    }
+    
     /*
        Stop local camera/microphone.
     */
@@ -1991,8 +5495,8 @@ if(conferenceArea){
         "#ff4444";
 
 
-    alert(
-        "The administrator has removed you from the conference."
+    showCustomAlert(
+        CUSTOM_ALERT_MESSAGES.removed
     );
 
 }
@@ -2004,85 +5508,53 @@ if(conferenceArea){
 function attachLocalParticipantVideo(){
 
     if(!localStream){
+        console.warn("No local participant stream available.");
+        return;
+    }
 
-        console.warn(
-            "No local participant stream available."
+    participantLocalVideo.srcObject = localStream;
+    participantLocalVideo.style.display = "block";
+    participantVideoPlaceholder.style.display = "none";
+
+    const videoTracks =
+        localStream.getVideoTracks();
+
+    const audioTracks =
+        localStream.getAudioTracks();
+
+    if(videoTracks.length){
+
+        const cameraOn =
+            videoTracks[0].enabled;
+
+        cameraButtonParticipant.classList.toggle(
+            "active",
+            cameraOn
         );
 
-        return;
+        cameraButtonParticipant.textContent =
+            cameraOn
+            ? "📹 Camera ON"
+            : "📹 Camera OFF";
 
     }
 
-    /*
-     * Find the first participant tile.
-     */
-    const tile =
-        document.getElementById("tile1");
+    if(audioTracks.length){
 
-    if(!tile){
+        const micOn =
+            audioTracks[0].enabled;
 
-        console.warn(
-            "Participant video tile not found."
+        micButtonParticipant.classList.toggle(
+            "active",
+            micOn
         );
 
-        return;
+        micButtonParticipant.textContent =
+            micOn
+            ? "🎤 Mic ON"
+            : "🔇 Mic OFF";
 
     }
-
-    /*
-     * Clear the existing placeholder.
-     */
-    tile.classList.remove(
-        "empty"
-    );
-
-    tile.innerHTML = "";
-
-    /*
-     * Create local video element.
-     */
-    const video =
-        document.createElement(
-            "video"
-        );
-
-    video.autoplay =
-        true;
-
-    video.playsInline =
-        true;
-
-    /*
-     * Local video should be muted
-     * to prevent audio feedback.
-     */
-    video.muted =
-        true;
-
-    video.srcObject =
-        localStream;
-
-    tile.appendChild(
-        video
-    );
-
-    /*
-     * Participant name.
-     */
-    const label =
-        document.createElement(
-            "div"
-        );
-
-    label.className =
-        "tileLabel";
-
-    label.textContent =
-        "You";
-
-    tile.appendChild(
-        label
-    );
 
 }
 
@@ -2123,17 +5595,22 @@ function enterConference(participant){
      * Show conference interface.
      */
     if(conferenceArea){
-
-        conferenceArea.style.display =
-            "flex";
-
+        conferenceArea.style.display = "flex";
     }
+
+if(!isAdministrator){
+    administratorView.style.display = "none";
+    participantView.style.display = "flex";
+    toolbar.style.display = "none";
+    adminPanel.style.display = "none";
+}
 
     /*
      * Make sure our local participant
      * camera/microphone is attached to
      * a local video element.
      */
+   
     attachLocalParticipantVideo();
 
     /*
@@ -2189,8 +5666,8 @@ function showDeniedScreen(){
         "#ff4444";
 
 
-    alert(
-        "The administrator did not allow entry to the conference."
+    showCustomAlert(
+        CUSTOM_ALERT_MESSAGES.denied
     );
 
 }
@@ -2246,52 +5723,95 @@ function subscribeToConference(){
                     payload.new;
 
 
-                if(
-                    participant.status ===
-                    "waiting"
-                ){
+if(
+    participant.status ===
+    "waiting"
+){
 
-                    addWaitingParticipantFromDatabase(
-                        participant
-                    );
+    playParticipantKnockNotification();
 
-                }
+    showCustomAlert(
+        CUSTOM_ALERT_MESSAGES.participantKnock(
+            participant.participant_name
+        )
+    );
+
+    addWaitingParticipantFromDatabase(
+        participant
+    );
+}
 
             }
 
         )
-        .on(
+        
+.on(
+    "postgres_changes",
+    {
+        event: "UPDATE",
+        schema: "public",
+        table:
+            "conference_participants",
+        filter:
+            "room_id=eq." + ROOM_ID
+    },
+    function(payload){
 
-            "postgres_changes",
-
-            {
-                event: "UPDATE",
-
-                schema: "public",
-
-                table:
-                    "conference_participants",
-
-                filter:
-                    "room_id=eq." + ROOM_ID
-
-            },
-
-            function(payload){
-
-                console.log(
-                    "PARTICIPANT UPDATE:",
-                    payload.new
-                );
+        console.log(
+            "PARTICIPANT UPDATE:",
+            payload.new
+        );
 
 
-                updateAdministratorParticipant(
-                    payload.new
-                );
+        /*
+         * Detect a participant leaving.
+         *
+         * Only trigger this when the status
+         * actually changes INTO "left".
+         */
 
-            }
+        if(
+            payload.new.status === "left" &&
+            payload.old.status !== "left"
+        ){
 
-        )
+            console.log(
+                "PARTICIPANT LEFT:",
+                payload.new
+            );
+
+
+            /*
+             * Play administrator notification sound.
+             */
+
+            playParticipantLeftNotification();
+
+
+            /*
+             * Alert administrator.
+             */
+
+            showCustomAlert(
+                CUSTOM_ALERT_MESSAGES.participantLeft(
+                    payload.new.participant_name
+                )
+            );
+
+        }
+
+
+        /*
+         * Continue with the normal participant
+         * update processing.
+         */
+
+        updateAdministratorParticipant(
+            payload.new
+        );
+
+    }
+)
 
         .on(
 
@@ -2474,16 +5994,62 @@ if(
     participant.status === "left"
 ){
 
-    if(index !== -1){
-
-        participants.splice(
-            index,
-            1
+    /*
+     * Immediately remove this participant from the
+     * administrator's active participant array.
+     *
+     * Use String comparison so the removal works
+     * regardless of whether the IDs arrive as strings
+     * or another equivalent type.
+     */
+    participants =
+        participants.filter(
+            p =>
+                String(p.id) !==
+                String(participant.id)
         );
 
-    }
+    /*
+     * IMMEDIATELY remove the participant's control-panel
+     * entry from the administrator view.
+     */
+    document
+        .querySelectorAll(
+            ".participantControl[data-participant-id]"
+        )
+        .forEach(
+            control => {
+
+                if(
+                    String(
+                        control.dataset.participantId
+                    ) === String(
+                        participant.id
+                    )
+                ){
+
+                    control.remove();
+
+                }
+
+            }
+        );
+
+    delete adminChatThreads[String(participant.id)];
 
 
+if(openAdminChatThread === String(participant.id)){
+    openAdminChatThread = null;
+}
+
+    /*
+     * Close the participant's WebRTC connection
+     * immediately when they leave.
+     */
+    closeParticipantWebRTC(
+        participant.id
+    );
+    
     /*
      * Clear the participant's video tile.
      */
@@ -2617,7 +6183,7 @@ if(
 
         renderParticipants();
 
-        assignParticipantToTile(
+        updateParticipantTileStatus(
             updatedParticipant
         );
 
@@ -2676,9 +6242,8 @@ async function allowParticipant(id){
             error
         );
 
-        alert(
-            "Unable to allow participant.\n\n" +
-            error.message
+        showCustomAlert(
+            CUSTOM_ALERT_MESSAGES.allowError(error)
         );
 
         return;
@@ -2756,9 +6321,28 @@ async function allowParticipant(id){
        Put participant into a video tile.
     */
 
-    assignParticipantToTile(
-        participant
-    );
+assignParticipantToTile(
+    participant
+);
+
+
+/*
+ * Make sure the administrator camera
+ * and microphone are ready before
+ * creating the WebRTC offer.
+ */
+
+await initializeAdministratorMedia();
+
+
+/*
+ * Start WebRTC connection with
+ * this participant.
+ */
+
+await createAdminPeerConnection(
+    participant.id
+);
 
 }
 
@@ -2774,58 +6358,35 @@ async function removeParticipant(id){
     );
 
     /*
-     * First tell the participant that they
-     * have been removed.
+     * Immediately remove the participant's
+     * control panel entry from the administrator view.
      *
-     * This allows the participant browser
-     * to react immediately.
+     * IMPORTANT:
+     * Do NOT remove the participant from the
+     * participants array here.
      */
-    const {
-        error: updateError
-    } =
-    await supabaseClient
-        .from("conference_participants")
-        .update({
-            status: "removed",
-            updated_at:
-                new Date().toISOString()
-        })
-        .eq(
-            "id",
-            id
+    const participantControl =
+        document.querySelector(
+            `.participantControl[data-participant-id="${id}"]`
         );
 
-    if(updateError){
+    if(participantControl){
 
-        console.error(
-            "REMOVE PARTICIPANT UPDATE ERROR:",
-            updateError
-        );
+        participantControl.remove();
 
-        alert(
-            "Unable to remove participant.\n\n" +
-            updateError.message
-        );
-
-        return;
     }
 
-    console.log(
-        "Participant marked removed:",
-        id
-    );
+/*
+ * Close the WebRTC connection.
+ */
+
+closeParticipantWebRTC(
+    id
+);
 
     /*
-     * Remove immediately from the
-     * administrator's local state.
-     */
-    participants =
-        participants.filter(
-            p => p.id !== id
-        );
-
-    /*
-     * Clear the participant's video tile.
+     * Immediately clear the participant's
+     * video tile from the administrator view.
      */
     document
         .querySelectorAll(
@@ -2849,7 +6410,64 @@ async function removeParticipant(id){
             }
         );
 
-    renderParticipants();
+    /*
+     * Tell Supabase that the participant
+     * has been removed.
+     */
+    const {
+        error: updateError
+    } =
+    await supabaseClient
+        .from("conference_participants")
+        .update({
+            status: "removed",
+            updated_at:
+                new Date().toISOString()
+        })
+        .eq(
+            "id",
+            id
+        );
+
+    if(updateError){
+
+        console.error(
+            "REMOVE PARTICIPANT UPDATE ERROR:",
+            updateError
+        );
+
+        showCustomAlert(
+            CUSTOM_ALERT_MESSAGES.removeError(updateError)
+        );
+
+        return;
+    }
+
+    console.log(
+        "Participant marked removed:",
+        id
+    );
+
+    /*
+     * Do NOT remove the participant from
+     * the participants array here.
+     *
+     * The existing Supabase realtime UPDATE
+     * handler will do that when it receives
+     * status = "removed".
+     */
+
+    /*
+     * Clean up administrator chat state.
+     */
+    delete adminChatThreads[String(id)];
+
+
+    if(openAdminChatThread === String(id)){
+
+        openAdminChatThread = null;
+
+    }
 
     /*
      * Give the participant browser a moment
@@ -2925,15 +6543,14 @@ adminCameraButton.addEventListener(
                 administratorCameraOn =
                     true;
 
-                adminCameraButton.textContent =
-                    "Show Safe Insight Logo";
-
+                updateAdminCameraButton("Cam ON");
+                
                 updateAdministratorCameraStatus();
 
             }catch(error){
 
-                alert(
-                    "Unable to access the administrator camera."
+                showCustomAlert(
+                    CUSTOM_ALERT_MESSAGES.administratorCamera
                 );
 
                 console.error(error);
@@ -2970,9 +6587,8 @@ adminCameraButton.addEventListener(
             administratorCameraOn =
                 false;
 
-            adminCameraButton.textContent =
-                "Administrator Video";
-
+            updateAdminCameraButton("Camera OFF");
+           
             updateAdministratorCameraStatus();
 
         }
@@ -3014,55 +6630,16 @@ micButton.addEventListener(
         administratorMicOn =
             !administratorMicOn;
 
-        audioTracks.forEach(
-            track => {
-                track.enabled =
-                    administratorMicOn;
-            }
-        );
-
-        updateAdministratorMicButton();
-
+audioTracks.forEach(
+    track => {
+        track.enabled =
+            administratorMicOn;
     }
 );
 
+updateAdministratorMicButton();
 
-/* =========================================================
-   ADMIN CAMERA BUTTON
-========================================================= */
-
-cameraButton.addEventListener(
-    "click",
-    function(){
-
-        if(!localStream){
-
-            requestAdministratorMedia();
-
-            return;
-
-        }
-
-        const videoTracks =
-            localStream.getVideoTracks();
-
-        if(videoTracks.length === 0){
-
-            return;
-
-        }
-
-        const currentlyEnabled =
-            videoTracks[0].enabled;
-
-        videoTracks.forEach(
-            track => {
-                track.enabled =
-                    !currentlyEnabled;
-            }
-        );
-
-        updateCameraButton();
+updateAdministratorMicStatus();
 
     }
 );
@@ -3078,27 +6655,37 @@ async function requestAdministratorMedia(){
 
         localStream =
             await navigator.mediaDevices.getUserMedia({
-                video:true,
+                video:false,
                 audio:true
             });
-
-        administratorCameraOn =
-            true;
 
         administratorMicOn =
             true;
 
-        updateCameraButton();
+        const audioTracks =
+            localStream.getAudioTracks();
+
+        audioTracks.forEach(
+            track => {
+                track.enabled =
+                    true;
+            }
+        );
 
         updateAdministratorMicButton();
 
+        updateAdministratorMicStatus();
+
     }catch(error){
 
-        alert(
-            "Camera and microphone permission was not granted."
+        showCustomAlert(
+            CUSTOM_ALERT_MESSAGES.administratorMicrophone
         );
 
-        console.error(error);
+        console.error(
+            "Administrator microphone error:",
+            error
+        );
 
     }
 
@@ -3161,10 +6748,16 @@ function updateAdministratorMicButton(){
     if(!localStream){
 
         micButton.textContent =
-            "🎤 Mic";
+            "🔇 Mic OFF";
+
+        micButton.classList.remove(
+            "active"
+        );
+
+        micButton.style.backgroundColor =
+            "#777";
 
         return;
-
     }
 
     const tracks =
@@ -3172,8 +6765,17 @@ function updateAdministratorMicButton(){
 
     if(!tracks.length){
 
-        return;
+        micButton.textContent =
+            "🔇 Mic OFF";
 
+        micButton.classList.remove(
+            "active"
+        );
+
+        micButton.style.backgroundColor =
+            "#777";
+
+        return;
     }
 
     if(tracks[0].enabled){
@@ -3185,6 +6787,9 @@ function updateAdministratorMicButton(){
             "active"
         );
 
+        micButton.style.backgroundColor =
+            "#147a14";
+
     }else{
 
         micButton.textContent =
@@ -3193,6 +6798,9 @@ function updateAdministratorMicButton(){
         micButton.classList.remove(
             "active"
         );
+
+        micButton.style.backgroundColor =
+            "#777";
 
     }
 
@@ -3212,17 +6820,25 @@ function updateAdministratorCameraStatus(){
 
     if(administratorCameraOn){
 
-        status.textContent =
-            "📹";
+        status.innerHTML =
+        getCameraSVG();
 
         status.classList.remove(
             "off"
         );
 
+        status.classList.add(
+            "on"
+        );
+
     }else{
 
-        status.textContent =
-            "📹";
+        status.innerHTML =
+        getCameraSVG();
+
+        status.classList.remove(
+            "on"
+        );
 
         status.classList.add(
             "off"
@@ -3246,17 +6862,25 @@ function updateAdministratorMicStatus(){
 
     if(administratorMicOn){
 
-        status.textContent =
-            "🎤";
+        status.innerHTML =
+        getMicSVG();
 
         status.classList.remove(
             "off"
         );
 
+        status.classList.add(
+            "on"
+        );
+
     }else{
 
-        status.textContent =
-            "🔇";
+        status.innerHTML =
+        getMicSVG();
+
+        status.classList.remove(
+            "on"
+        );
 
         status.classList.add(
             "off"
@@ -3421,9 +7045,8 @@ async function denyParticipant(id){
             error
         );
 
-        alert(
-            "Unable to deny participant.\n\n" +
-            error.message
+        showCustomAlert(
+            CUSTOM_ALERT_MESSAGES.denyError(error)
         );
 
         return;
@@ -3476,7 +7099,11 @@ function renderParticipants(){
                 );
 
             div.className =
-                "participantControl";
+            "participantControl";
+
+            div.dataset.participantId =
+            participant.id;
+
 
 
             div.innerHTML = `
@@ -3530,17 +7157,12 @@ function renderParticipants(){
                     </button>
 
                     <button
-                        class="${
-                            participant.micLocked
-                            ? "locked"
-                            : ""
-                        }"
                         onclick="toggleMicLock('${participant.id}')"
                     >
                         ${
-                            participant.micLocked
-                            ? "Unlock Mic"
-                            : "🔒 Lock Mic"
+                            participant.micOn
+                            ? "🔒 Lock Mic"
+                            : "Unlock Mic"
                         }
                     </button>
 
@@ -3562,6 +7184,8 @@ function renderParticipants(){
         }
     );
 
+    renderAdminChatRecipients();
+
 }
 
 
@@ -3569,7 +7193,7 @@ function renderParticipants(){
    PARTICIPANT CAMERA
 ========================================================= */
 
-function toggleParticipantCamera(id){
+async function toggleParticipantCamera(id){
 
     const participant =
         participants.find(
@@ -3579,18 +7203,41 @@ function toggleParticipantCamera(id){
     if(!participant){
 
         return;
-
     }
+
 
     participant.cameraOn =
         !participant.cameraOn;
 
 
-    updateParticipantTile(
-        participant
-    );
+    await sendWebRTCSignal({
+
+        type:
+            "participant-media-control",
+
+        senderId:
+            "administrator",
+
+        targetId:
+            id,
+
+        participantId:
+            id,
+
+        media:
+            "camera",
+
+        enabled:
+            participant.cameraOn
+
+    });
+
 
     renderParticipants();
+
+    updateParticipantTileStatus(
+        participant
+    );
 
 }
 
@@ -3599,7 +7246,7 @@ function toggleParticipantCamera(id){
    PARTICIPANT MIC
 ========================================================= */
 
-function toggleParticipantMic(id){
+async function toggleParticipantMic(id){
 
     const participant =
         participants.find(
@@ -3609,33 +7256,54 @@ function toggleParticipantMic(id){
     if(!participant){
 
         return;
-
     }
 
+
     /*
-       Locked microphone cannot be changed
-       by participant, but administrator can
-       always change it.
-    */
+     * Administrator can always
+     * change the participant microphone.
+     */
 
     participant.micOn =
         !participant.micOn;
 
 
-    updateParticipantTile(
-        participant
-    );
+    await sendWebRTCSignal({
+
+        type:
+            "participant-media-control",
+
+        senderId:
+            "administrator",
+
+        targetId:
+            id,
+
+        participantId:
+            id,
+
+        media:
+            "microphone",
+
+        enabled:
+            participant.micOn
+
+    });
+
 
     renderParticipants();
 
-}
+        updateParticipantTileStatus(
+        participant
+    );
 
+}
 
 /* =========================================================
    LOCK MICROPHONE
 ========================================================= */
 
-function toggleMicLock(id){
+async function toggleMicLock(id){
 
     const participant =
         participants.find(
@@ -3643,14 +7311,21 @@ function toggleMicLock(id){
         );
 
     if(!participant){
-
         return;
-
     }
 
 
     participant.micLocked =
         !participant.micLocked;
+
+    console.log(
+    "MIC LOCK CLICKED:",
+    {
+        participantId: id,
+        micLocked: participant.micLocked,
+        micOn: participant.micOn
+    }
+);
 
 
     /*
@@ -3665,9 +7340,86 @@ function toggleMicLock(id){
     }
 
 
-    updateParticipantTile(
+    /*
+       Send the microphone state AND the
+       lock state to the participant.
+    */
+
+    await sendWebRTCSignal({
+        type:
+            "participant-media-control",
+
+        senderId:
+            "administrator",
+
+        targetId:
+            id,
+
+        participantId:
+            id,
+
+        media:
+            "microphone",
+
+        enabled:
+            participant.micOn,
+
+        locked:
+            participant.micLocked
+
+    });
+
+
+    /*
+       Save the lock state and microphone
+       state to Supabase.
+    */
+
+    supabaseClient
+        .from(
+            "conference_participants"
+        )
+        .update({
+
+            mic_locked:
+                participant.micLocked,
+
+            mic_on:
+                participant.micOn,
+
+            updated_at:
+                new Date().toISOString()
+
+        })
+        .eq(
+            "id",
+            id
+        )
+        .then(
+            function(result){
+
+                if(result.error){
+
+                    console.error(
+                        "MIC LOCK UPDATE ERROR:",
+                        result.error
+                    );
+
+                }
+
+            }
+        );
+
+
+    /*
+       Update the existing tile without
+       destroying the WebRTC video element.
+    */
+
+    updateParticipantTileStatus(
         participant
     );
+
 
     renderParticipants();
 
@@ -3681,6 +7433,31 @@ function toggleMicLock(id){
 function assignParticipantToTile(
     participant
 ){
+
+    /*
+       First check whether this participant
+       already has a video tile.
+
+       If they do, simply update that tile
+       and do NOT assign another tile.
+    */
+
+    const existingTile =
+        document.querySelector(
+            `.videoTile[data-participant-id="${participant.id}"]`
+        );
+
+if(existingTile){
+
+  
+    return;
+}
+
+
+    /*
+       Participant does not have a tile yet.
+       Find the first available tile.
+    */
 
     const availableTiles = [
         1,
@@ -3705,29 +7482,176 @@ function assignParticipantToTile(
 
 
         if(
+            tile &&
             !tile.dataset.participantId
         ){
 
             tile.dataset.participantId =
                 participant.id;
 
+
+            tile.addEventListener(
+                "click",
+                function(){
+                    tile.classList.remove(
+                        "chatAlert"
+                    );
+                }
+            );
+
+tile.addEventListener(
+    "click",
+    function(event){
+
+        if(event.detail !== 2){
+            return;
+        }
+
+        openParticipantMirror(
+            participant.id
+        );
+
+    }
+);
+
+
             updateParticipantTile(
                 participant
             );
 
-            return;
 
+            return;
         }
 
     }
 
 
-    alert(
-        "The conference is full. Maximum 8 participants plus the administrator."
+    /*
+       No available tiles remain.
+    */
+
+    showCustomAlert(
+        CUSTOM_ALERT_MESSAGES.conferenceFull
     );
 
 }
 
+async function openParticipantMirror(participantId){
+
+    if(!isAdministrator){
+        return;
+    }
+
+    if(!participantId){
+        return;
+    }
+
+    /*
+     * Open the mirror window immediately
+     * while still inside the administrator's
+     * double-click user gesture.
+     */
+    const mirrorUrl =
+        window.location.origin +
+        window.location.pathname +
+        "?mirror=true" +
+        "&room=" +
+        encodeURIComponent(ROOM_ID) +
+        "&participant=" +
+        encodeURIComponent(participantId);
+
+    const mirrorWindow =
+        window.open(
+            mirrorUrl,
+            "_blank"
+        );
+
+    if(!mirrorWindow){
+        showCustomAlert(
+            "The mirror window was blocked by your browser. Please allow pop-ups for this conference site."
+        );
+
+        return;
+    }
+
+    /*
+     * Now tell the participant that the
+     * administrator wants to view their screen.
+     */
+    await sendWebRTCSignal({
+
+        type:
+            "screen-share-request",
+
+        senderId:
+            "administrator",
+
+        targetId:
+            participantId,
+
+        participantId:
+            participantId
+    });
+}
+
+function getMicSVG(){
+    return `
+        <svg viewBox="0 0 24 24"
+             width="16"
+             height="16"
+             aria-hidden="true">
+            <path
+                d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"/>
+            <path
+                d="M19 11a7 7 0 0 1-14 0"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"/>
+            <path
+                d="M12 18v4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"/>
+            <path
+                d="M8 22h8"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"/>
+        </svg>
+    `;
+}
+
+
+function getCameraSVG(){
+    return `
+        <svg viewBox="0 0 24 24"
+             width="16"
+             height="16"
+             aria-hidden="true">
+            <path
+                d="M15 8H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"/>
+            <path
+                d="m17 11 4-2v8l-4-2"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+                stroke-linecap="round"/>
+        </svg>
+    `;
+}
 
 /* =========================================================
    UPDATE PARTICIPANT TILE
@@ -3766,19 +7690,26 @@ function updateParticipantTile(
        Video element.
     */
 
-    const video =
-        document.createElement(
-            "video"
-        );
+const video =
+    document.createElement(
+        "video"
+    );
 
-    video.autoplay =
-        true;
 
-    video.playsInline =
-        true;
+video.className =
+    "participantRemoteVideo";
 
-    video.muted =
-        true;
+
+video.autoplay =
+    true;
+
+
+video.playsInline =
+    true;
+
+
+video.muted =
+    true;
 
 
     /*
@@ -3875,19 +7806,23 @@ function updateParticipantTile(
     mic.className =
         "statusIcon";
 
-    mic.textContent =
-        participant.micOn
-        ? "🎤"
-        : "🔇";
+    mic.innerHTML =
+    getMicSVG();
 
 
-    if(!participant.micOn){
+if(participant.micOn){
 
-        mic.classList.add(
-            "off"
-        );
+    mic.classList.add(
+        "on"
+    );
 
-    }
+}else{
+
+    mic.classList.add(
+        "off"
+    );
+
+}
 
 
     const camera =
@@ -3898,19 +7833,23 @@ function updateParticipantTile(
     camera.className =
         "statusIcon";
 
-    camera.textContent =
-        participant.cameraOn
-        ? "📹"
-        : "📹";
+    camera.innerHTML =
+    getCameraSVG();
 
 
-    if(!participant.cameraOn){
+if(participant.cameraOn){
 
-        camera.classList.add(
-            "off"
-        );
+    camera.classList.add(
+        "on"
+    );
 
-    }
+}else{
+
+    camera.classList.add(
+        "off"
+    );
+
+}
 
 
     status.appendChild(
@@ -3967,9 +7906,9 @@ function updateParticipantTile(
                 onclick="toggleMicLock('${participant.id}')"
             >
                 ${
-                    participant.micLocked
-                    ? "Unlock"
-                    : "🔒 Lock Mic"
+                    participant.micOn
+                    ? "🔒 Lock Mic"
+                    : "Unlock Mic"
                 }
             </button>
 
@@ -3990,6 +7929,136 @@ function updateParticipantTile(
 
 }
 
+/* =========================================================
+   UPDATE PARTICIPANT TILE STATUS ONLY
+========================================================= */
+
+function updateParticipantTileStatus(
+    participant
+){
+
+    const tile =
+        document.querySelector(
+            `.videoTile[data-participant-id="${participant.id}"]`
+        );
+
+
+    if(!tile){
+
+        return;
+
+    }
+
+
+    /*
+     * Update microphone icon.
+     */
+
+    const statusIcons =
+        tile.querySelectorAll(
+            ".tileStatus .statusIcon"
+        );
+
+
+    if(statusIcons.length >= 1){
+
+        statusIcons[0].classList.toggle(
+            "on",
+            participant.micOn
+        );
+
+        statusIcons[0].classList.toggle(
+            "off",
+            !participant.micOn
+        );
+
+    }
+
+
+    /*
+     * Update camera icon.
+     */
+
+    if(statusIcons.length >= 2){
+
+        statusIcons[1].classList.toggle(
+            "on",
+            participant.cameraOn
+        );
+
+        statusIcons[1].classList.toggle(
+            "off",
+            !participant.cameraOn
+        );
+
+    }
+
+        /*
+     * Update participant video display.
+     */
+
+    const participantVideo =
+        tile.querySelector(
+            ".participantRemoteVideo"
+        );
+
+    if(participantVideo){
+
+        participantVideo.style.display =
+            participant.cameraOn
+            ? "block"
+            : "none";
+
+    }
+
+
+    /*
+     * Update administrator camera button.
+     */
+
+    const adminButtons =
+        tile.querySelectorAll(
+            ".adminControls button"
+        );
+
+
+    if(adminButtons.length >= 1){
+
+        adminButtons[0].textContent =
+            participant.cameraOn
+            ? "Camera OFF"
+            : "Camera ON";
+
+    }
+
+
+    /*
+     * Update administrator microphone button.
+     */
+
+    if(adminButtons.length >= 2){
+
+        adminButtons[1].textContent =
+            participant.micOn
+            ? "Mute"
+            : "Unmute";
+    }
+
+        /*
+     * Update administrator microphone lock button
+     * based on current microphone status.
+     */
+    
+    if(adminButtons.length >= 3){
+    
+        adminButtons[2].textContent =
+            participant.micOn
+            ? "🔒 Lock Mic"
+            : "Unlock Mic";
+    
+    }
+
+}
 
 /* =========================================================
    CLEAR PARTICIPANT TILE
@@ -3999,21 +8068,53 @@ function clearParticipantTile(
     tile
 ){
 
+    /*
+     * Completely destroy every video element
+     * currently inside this tile.
+     */
+    const videos =
+        tile.querySelectorAll(
+            "video"
+        );
+
+    videos.forEach(
+        function(video){
+
+            video.pause();
+
+            video.srcObject =
+                null;
+
+            video.removeAttribute(
+                "src"
+            );
+
+            video.load();
+
+            video.remove();
+
+        }
+    );
+
+    /*
+     * Remove the participant ID so this tile
+     * is immediately considered empty.
+     */
     tile.removeAttribute(
         "data-participant-id"
     );
 
+    /*
+     * Reset the tile to its empty state.
+     */
     tile.className =
         "videoTile empty";
 
     tile.innerHTML = `
-
         <div class="tileLabel">
             Waiting for Participant
         </div>
-
     `;
-
 }
 
 
@@ -4026,9 +8127,9 @@ leaveButton.addEventListener(
     async function(){
 
         if(
-            !confirm(
-                "Leave this conference?"
-            )
+            !(await showCustomConfirm(
+                CUSTOM_ALERT_MESSAGES.leaveConfirm
+            ))
         ){
 
             return;
@@ -4054,8 +8155,8 @@ leaveButton.addEventListener(
                 "LEAVE ERROR: No participant ID found."
             );
 
-            alert(
-                "Unable to identify your conference session."
+            showCustomAlert(
+                CUSTOM_ALERT_MESSAGES.sessionNotFound
             );
 
             return;
@@ -4096,9 +8197,8 @@ await supabaseClient
                 error
             );
 
-            alert(
-                "Unable to leave the conference.\n\n" +
-                error.message
+            showCustomAlert(
+                CUSTOM_ALERT_MESSAGES.leaveError(error)
             );
 
             return;
@@ -4162,6 +8262,949 @@ await supabaseClient
     }
 );
 
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+let chatChannel = null;
+let adminChatThreads = {};
+let openAdminChatThread = "ALL";
+
+function playAdminChatNotification(){
+
+    try{
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        const audioContext =
+            new AudioContext();
+
+        const oscillator =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+        oscillator.type = "sine";
+
+        oscillator.frequency.setValueAtTime(
+            880,
+            audioContext.currentTime
+        );
+
+        oscillator.frequency.setValueAtTime(
+            660,
+            audioContext.currentTime + 0.12
+        );
+
+        gain.gain.setValueAtTime(
+            0.0001,
+            audioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.25,
+            audioContext.currentTime + 0.01
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            audioContext.currentTime + 0.25
+        );
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start();
+
+        oscillator.stop(
+            audioContext.currentTime + 0.25
+        );
+
+    }catch(error){
+
+        console.warn(
+            "Chat notification sound unavailable:",
+            error
+        );
+
+    }
+
+}
+
+function playParticipantKnockNotification(){
+
+    try{
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        const audioContext =
+            new AudioContext();
+
+        const oscillator =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+        oscillator.type = "sine";
+
+        oscillator.frequency.setValueAtTime(
+            880,
+            audioContext.currentTime
+        );
+
+        oscillator.frequency.setValueAtTime(
+            1047,
+            audioContext.currentTime + 0.12
+        );
+
+        gain.gain.setValueAtTime(
+            0.0001,
+            audioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.25,
+            audioContext.currentTime + 0.01
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            audioContext.currentTime + 0.35
+        );
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start();
+
+        oscillator.stop(
+            audioContext.currentTime + 0.35
+        );
+
+    }catch(error){
+
+        console.warn(
+            "Participant knock notification sound unavailable:",
+            error
+        );
+
+    }
+
+}
+
+function playParticipantChatNotification(){
+
+    try{
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        const audioContext =
+            new AudioContext();
+
+        const oscillator =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+        oscillator.type = "sine";
+
+        oscillator.frequency.setValueAtTime(
+            660,
+            audioContext.currentTime
+        );
+
+        oscillator.frequency.setValueAtTime(
+            880,
+            audioContext.currentTime + 0.12
+        );
+
+        gain.gain.setValueAtTime(
+            0.0001,
+            audioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.25,
+            audioContext.currentTime + 0.01
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            audioContext.currentTime + 0.30
+        );
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start();
+
+        oscillator.stop(
+            audioContext.currentTime + 0.30
+        );
+
+    }catch(error){
+
+        console.warn(
+            "Participant chat notification sound unavailable:",
+            error
+        );
+
+    }
+
+}
+
+function playParticipantLeftNotification(){
+
+    try{
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        const audioContext =
+            new AudioContext();
+
+        const oscillator =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+
+        oscillator.type =
+            "sine";
+
+
+        oscillator.frequency.setValueAtTime(
+            520,
+            audioContext.currentTime
+        );
+
+        oscillator.frequency.setValueAtTime(
+            390,
+            audioContext.currentTime + 0.15
+        );
+
+
+        gain.gain.setValueAtTime(
+            0.0001,
+            audioContext.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.25,
+            audioContext.currentTime + 0.01
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.0001,
+            audioContext.currentTime + 0.35
+        );
+
+
+        oscillator.connect(
+            gain
+        );
+
+        gain.connect(
+            audioContext.destination
+        );
+
+
+        oscillator.start();
+
+        oscillator.stop(
+            audioContext.currentTime + 0.35
+        );
+
+
+    }catch(error){
+
+        console.warn(
+            "Participant-left notification sound unavailable:",
+            error
+        );
+
+    }
+
+}
+
+function initializeChat(){
+
+    chatChannel = supabaseClient
+        .channel("conference-chat-" + ROOM_ID)
+        .on("broadcast", { event: "chat" }, function(payload){
+
+            const message = payload.payload || {};
+            if(message.roomId !== ROOM_ID){ return; }
+
+            if(isAdministrator){
+                if(message.recipientId === "ADMIN" || message.senderId !== "ADMIN"){
+                    const senderId = String(message.senderId || "");
+                    if(senderId !== "ADMIN"){
+                        if(!adminChatThreads[senderId]) adminChatThreads[senderId] = [];
+adminChatThreads[senderId].push({
+    mine:false,
+    senderName:message.senderName || "Participant",
+    text:message.text
+});
+
+playAdminChatNotification();
+
+const chatTile = document.querySelector(
+    `.videoTile[data-participant-id="${senderId}"]`
+);
+
+if(chatTile){
+    chatTile.classList.add("chatAlert");
+    }
+}
+
+                    
+            appendChatMessage(adminChatMessages, false, message.senderName || "Participant", message.text);
+            renderAdminChatRecipients();
+        }
+}else{
+
+    if(
+        message.recipientId === window.myParticipantId
+    ){
+
+        appendChatMessage(
+            participantChatMessages,
+            message.senderId === window.myParticipantId,
+            message.senderName || "Administrator",
+            message.text
+        );
+
+if(message.senderId === "ADMIN"){
+
+    playParticipantChatNotification();
+
+    showCustomAlert(
+        CUSTOM_ALERT_MESSAGES.participantChat
+    );
+}
+
+    }
+
+}
+        })
+        .subscribe(function(status){ console.log("Chat channel:", status); });
+}
+
+function appendChatMessage(container, mine, senderName, text){
+    if(!container){ return; }
+    const div = document.createElement("div");
+    div.className = "chatMessage" + (mine ? " mine" : "");
+    div.innerHTML = `<div class="chatMessageMeta">${escapeHtml(senderName)}</div><div>${escapeHtml(text)}</div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function renderAdminChatRecipients(){
+
+    if(!adminChatRecipients){
+        return;
+    }
+
+    adminChatRecipients.innerHTML = "";
+
+    /*
+     * Chat All Users
+     */
+    const allLabel =
+        document.createElement("div");
+
+    allLabel.className =
+        "chatRecipient" +
+        (
+            openAdminChatThread === "ALL"
+                ? " selected"
+                : ""
+        );
+
+    const allName =
+        document.createElement("span");
+
+    allName.className =
+        "chatRecipientName";
+
+    allName.textContent =
+        "Chat All Users";
+
+    allLabel.appendChild(
+        allName
+    );
+
+    allLabel.addEventListener(
+        "click",
+        function(){
+
+            openAdminChatThread =
+                "ALL";
+
+            renderAdminChatRecipients();
+            renderAdminChatMessages();
+
+        }
+    );
+
+    adminChatRecipients.appendChild(
+        allLabel
+    );
+
+
+    /*
+     * Individual active participants
+     */
+    participants.forEach(
+        function(participant){
+
+            const id =
+                String(participant.id);
+
+            const messages =
+                adminChatThreads[id] || [];
+
+            const label =
+                document.createElement("div");
+
+            label.className =
+                "chatRecipient" +
+                (
+                    openAdminChatThread === id
+                        ? " selected"
+                        : ""
+                );
+
+            const name =
+                document.createElement("span");
+
+            name.className =
+                "chatRecipientName";
+
+            name.textContent =
+                participant.name;
+
+            const badge =
+                document.createElement("span");
+
+            badge.className =
+                "chatThreadBadge";
+
+            badge.textContent =
+                messages.length;
+
+            badge.title =
+                messages.length +
+                " message" +
+                (
+                    messages.length === 1
+                        ? ""
+                        : "s"
+                );
+
+            label.appendChild(
+                name
+            );
+
+            label.appendChild(
+                badge
+            );
+
+            label.addEventListener(
+                "click",
+                function(){
+
+                    openAdminChatThread =
+                        id;
+
+                    renderAdminChatRecipients();
+                    renderAdminChatMessages();
+
+                }
+            );
+
+            adminChatRecipients.appendChild(
+                label
+            );
+
+        }
+    );
+
+}
+
+function renderAdminChatMessages(){
+
+    if(!adminChatMessages){
+        return;
+    }
+
+    adminChatMessages.innerHTML = "";
+
+
+    /*
+     * CHAT ALL USERS
+     */
+    if(openAdminChatThread === "ALL"){
+
+        const allMessages = [];
+
+        Object.keys(adminChatThreads).forEach(
+            function(id){
+
+                const messages =
+                    adminChatThreads[id] || [];
+
+                messages.forEach(
+                    function(message){
+
+                        allMessages.push({
+                            ...message,
+                            participantId:id
+                        });
+
+                    }
+                );
+
+            }
+        );
+
+        if(!allMessages.length){
+
+            adminChatMessages.innerHTML =
+                '<div class="chatThreadEmpty">No messages yet.</div>';
+
+            return;
+
+        }
+
+        allMessages.forEach(
+            function(message){
+
+                appendChatMessage(
+                    adminChatMessages,
+                    message.mine,
+                    message.mine
+                        ? "Administrator"
+                        : message.senderName,
+                    message.text
+                );
+
+            }
+        );
+
+        return;
+    }
+
+
+    /*
+     * INDIVIDUAL PARTICIPANT
+     */
+    const messages =
+        adminChatThreads[openAdminChatThread] || [];
+
+    if(!messages.length){
+
+        adminChatMessages.innerHTML =
+            '<div class="chatThreadEmpty">No conversation with this participant yet.</div>';
+
+        return;
+
+    }
+
+    messages.forEach(
+        function(message){
+
+            appendChatMessage(
+                adminChatMessages,
+                message.mine,
+                message.mine
+                    ? "Administrator"
+                    : message.senderName,
+                message.text
+            );
+
+        }
+    );
+
+}
+
+adminChatButton.addEventListener(
+    "click",
+    function(){
+
+        if(
+            adminChatPanel.style.display === "flex"
+        ){
+
+            adminChatPanel.style.display =
+                "none";
+
+        }else{
+
+            if(!openAdminChatThread){
+                openAdminChatThread =
+                    "ALL";
+            }
+
+            renderAdminChatRecipients();
+            renderAdminChatMessages();
+
+            adminChatPanel.style.display =
+                "flex";
+
+        }
+
+    }
+);
+
+closeAdminChat.addEventListener("click", function(){ adminChatPanel.style.display = "none"; });
+
+adminChatSend.addEventListener(
+    "click",
+    async function(){
+
+        const text =
+            adminChatInput.value.trim();
+
+        if(!text || !chatChannel){
+            return;
+        }
+
+
+        /*
+         * CHAT ALL USERS
+         */
+        if(openAdminChatThread === "ALL"){
+
+            for(
+                const participant of participants
+            ){
+
+                const id =
+                    String(participant.id);
+
+                await chatChannel.send({
+                    type:"broadcast",
+                    event:"chat",
+                    payload:{
+                        roomId:ROOM_ID,
+                        senderId:"ADMIN",
+                        senderName:"Administrator",
+                        recipientId:id,
+                        text:text,
+                        sentAt:
+                            new Date().toISOString()
+                    }
+                });
+
+                if(!adminChatThreads[id]){
+                    adminChatThreads[id] = [];
+                }
+
+                adminChatThreads[id].push({
+                    mine:true,
+                    senderName:"Administrator",
+                    text:text
+                });
+
+            }
+
+        }
+
+
+        /*
+         * ONE INDIVIDUAL USER
+         */
+        else{
+
+            const id =
+                String(openAdminChatThread);
+
+            await chatChannel.send({
+                type:"broadcast",
+                event:"chat",
+                payload:{
+                    roomId:ROOM_ID,
+                    senderId:"ADMIN",
+                    senderName:"Administrator",
+                    recipientId:id,
+                    text:text,
+                    sentAt:
+                        new Date().toISOString()
+                }
+            });
+
+            if(!adminChatThreads[id]){
+                adminChatThreads[id] = [];
+            }
+
+            adminChatThreads[id].push({
+                mine:true,
+                senderName:"Administrator",
+                text:text
+            });
+
+        }
+
+
+        adminChatInput.value = "";
+
+        renderAdminChatRecipients();
+        renderAdminChatMessages();
+
+    }
+);
+
+adminChatInput.addEventListener("keydown", function(event){ if(event.key === "Enter"){ event.preventDefault(); adminChatSend.click(); } });
+
+participantChatSend.addEventListener("click", async function(){
+    const text = participantChatInput.value.trim();
+    if(!text || !chatChannel || !window.myParticipantId){ return; }
+    await chatChannel.send({ type:"broadcast", event:"chat", payload:{ roomId:ROOM_ID, senderId:window.myParticipantId, senderName:nameInput.value.trim() || "Participant", recipientId:"ADMIN", text:text, sentAt:new Date().toISOString() } });
+    appendChatMessage(participantChatMessages, true, "You", text);
+    participantChatInput.value = "";
+});
+
+participantChatInput.addEventListener("keydown", function(event){ if(event.key === "Enter"){ event.preventDefault(); participantChatSend.click(); } });
+
+
+micButtonParticipant.addEventListener(
+    "click",
+    async function(){
+
+        if(
+            micButtonParticipant.textContent ===
+            "🔇 LOCKED"
+        ){
+            return;
+        }
+
+        if(!localStream){
+            return;
+        }
+
+        const tracks =
+            localStream.getAudioTracks();
+
+        if(!tracks.length){
+            return;
+        }
+
+        tracks.forEach(
+            track => {
+                track.enabled =
+                    !track.enabled;
+            }
+        );
+
+        const enabled =
+            tracks[0].enabled;
+
+        micButtonParticipant.textContent =
+            enabled
+            ? "🎤 Mic ON"
+            : "🔇 Mic OFF";
+
+        micButtonParticipant.classList.toggle(
+            "active",
+            enabled
+        );
+
+
+        /*
+         * Save microphone state to Supabase
+         * so the administrator sees the
+         * correct status.
+         */
+        if(window.myParticipantId){
+
+            const {
+                error
+            } =
+            await supabaseClient
+                .from(
+                    "conference_participants"
+                )
+                .update({
+                    mic_on:
+                        enabled,
+                    updated_at:
+                        new Date().toISOString()
+                })
+                .eq(
+                    "id",
+                    window.myParticipantId
+                );
+
+            if(error){
+
+                console.error(
+                    "MIC STATUS UPDATE ERROR:",
+                    error
+                );
+
+            }
+
+        }
+
+    }
+);
+
+cameraButtonParticipant.addEventListener(
+    "click",
+    async function(){
+
+        if(isMirror){
+
+            mirrorCameraOn =
+                !mirrorCameraOn;
+
+            await sendWebRTCSignal({
+
+                type:
+                    "participant-media-control",
+
+                senderId:
+                    "mirror-" +
+                    mirrorParticipantId,
+
+                targetId:
+                    mirrorParticipantId,
+
+                participantId:
+                    mirrorParticipantId,
+
+                media:
+                    "camera",
+
+                enabled:
+                    mirrorCameraOn
+
+            });
+
+            cameraButtonParticipant.textContent =
+                mirrorCameraOn
+                ? "📹 Camera ON"
+                : "📹 Camera OFF";
+
+            cameraButtonParticipant.classList.toggle(
+                "active",
+                mirrorCameraOn
+            );
+
+            await supabaseClient
+                .from("conference_participants")
+                .update({
+                    camera_on:
+                        mirrorCameraOn,
+
+                    updated_at:
+                        new Date().toISOString()
+                })
+                .eq(
+                    "id",
+                    mirrorParticipantId
+                );
+
+            return;
+        }
+
+
+        if(!localStream){
+            return;
+        }
+
+        const tracks =
+            localStream.getVideoTracks();
+
+        if(!tracks.length){
+            return;
+        }
+
+        tracks.forEach(
+            track => {
+                track.enabled =
+                    !track.enabled;
+            }
+        );
+
+        const enabled =
+            tracks[0].enabled;
+
+        participantLocalVideo.style.display =
+            enabled
+            ? "block"
+            : "none";
+
+        participantVideoPlaceholder.style.display =
+            enabled
+            ? "none"
+            : "flex";
+
+        cameraButtonParticipant.textContent =
+            enabled
+            ? "📹 Camera ON"
+            : "📹 Camera OFF";
+
+        cameraButtonParticipant.classList.toggle(
+            "active",
+            enabled
+        );
+
+
+        /*
+         * Save camera state to Supabase
+         * so the administrator sees the
+         * correct status.
+         */
+        if(window.myParticipantId){
+
+            const {
+                error
+            } =
+            await supabaseClient
+                .from(
+                    "conference_participants"
+                )
+                .update({
+                    camera_on:
+                        enabled,
+                    updated_at:
+                        new Date().toISOString()
+                })
+                .eq(
+                    "id",
+                    window.myParticipantId
+                );
+
+            if(error){
+
+                console.error(
+                    "CAMERA STATUS UPDATE ERROR:",
+                    error
+                );
+
+            }
+
+        }
+
+    }
+);
+
+leaveButtonParticipant.addEventListener("click", function(){ leaveButton.click(); });
 
 /* =========================================================
    ESCAPE HTML
@@ -4300,32 +9343,36 @@ async function loadConferenceParticipants(){
             }
 
 
-            if(
-                participant.status ===
-                "approved"
+           if(
+            participant.status ===
+            "approved"
             ){
 
-                participants.push({
+    const restoredParticipant = {
+        id:
+            participant.id,
 
-                    id:
-                        participant.id,
+        name:
+            participant.participant_name,
 
-                    name:
-                        participant.participant_name,
+        cameraOn:
+            participant.camera_on,
 
-                    cameraOn:
-                        participant.camera_on,
+        micOn:
+            participant.mic_on,
 
-                    micOn:
-                        participant.mic_on,
+        micLocked:
+            participant.mic_locked
+    };
 
-                    micLocked:
-                        participant.mic_locked
+    participants.push(
+        restoredParticipant
+    );
 
-                });
-
-            }
-
+    assignParticipantToTile(
+        restoredParticipant
+    );
+}
         }
     );
 
@@ -4339,12 +9386,44 @@ async function loadConferenceParticipants(){
         "Participant state restored."
     );
 
+/*
+ * Reconnect WebRTC for participants
+ * who were already approved when the
+ * administrator refreshed the page.
+ */
+if(participants.length){
+
+    while(!webRTCSignalingReady){
+
+        await new Promise(
+            resolve => setTimeout(resolve, 50)
+        );
+
+    }
+
+    await initializeAdministratorMedia();
+
+    for(
+        const participant
+        of participants
+    ){
+
+        await createAdminPeerConnection(
+            participant.id
+        );
+
+    }
+
+}
+
 }
 
 /* =========================================================
    START APPLICATION
 ========================================================= */
 
+initializeChat();
+initializeWebRTCSignaling();
 initializeApplication();
 
 
